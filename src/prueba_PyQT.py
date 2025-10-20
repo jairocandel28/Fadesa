@@ -7,7 +7,6 @@ class VentanaSimple(QWidget):
         self.setup_ui()
     
     def setup_ui(self):
-        self.setWindowTitle("App Sencilla PyQt6")
         self.setGeometry(400, 100,700, 300)
         layout = QVBoxLayout()
         self.entrada = QLineEdit()
