@@ -1,14 +1,11 @@
 
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
-import pandas as pd
 
 from lector import *
 
 
-# -----------------------------
 # Función para limpiar ventana
-# -----------------------------
 def limpiar_ventana():
     for widget in ventana.winfo_children():
         widget.destroy()
@@ -44,9 +41,7 @@ def pantalla_inicio():
 
 
 
-# -----------------------------
 # Pantalla para introducir datos
-# -----------------------------
 def pantalla_analizar_archivo():
     limpiar_ventana()
 
@@ -123,9 +118,8 @@ def pantalla_analizar_archivo():
     boton_volver = tk.Button(ventana, text="Volver al menú", command=lambda: menu("Usuario"))
     boton_volver.pack(pady=10)    
 
-# -----------------------------
+
 # Pantalla de menú
-# -----------------------------
 def menu(nombre):
     limpiar_ventana()
 
@@ -157,52 +151,3 @@ if __name__ == "__main__":
 
 
 
-
-
-"""
-import tkinter as tk
-from tkinter import filedialog
-from tkinter import messagebox
-
-from lector import *
-
-def seleccionar_archivo():
-    ruta = filedialog.askopenfilename(
-        title="Selecciona un archivo",
-        filetypes=[("Todos los soportados", "*.csv *.xlsx *.db"),
-                   ("CSV", "*.csv"),
-                   ("Excel", "*.xlsx"),
-                   ("Base de datos", "*.db")]
-    )
-    if ruta:
-        datos = leer_archivo(ruta)
-        messagebox.showinfo("Resultado", f"Archivo leído correctamente: {ruta}")
-    else:
-        messagebox.showwarning("Atención", "No se seleccionó ningún archivo.")
-
-ventana = tk.Tk()
-ventana.title("Lector de archivos")
-tk.Button(ventana, text="Seleccionar archivo", command=seleccionar_archivo).pack(padx=20, pady=20)
-ventana.mainloop()
-
-
-
-
-
-
-### IMAGEN ###
-
-# Cargar la imagen usando PIL
-imagen = Image.open("C:/Users/ander/Downloads/el_bich.jpg")  
-imagen_tk = ImageTk.PhotoImage(imagen)
-
-# Crear un label para mostrar la imagen
-label_imagen = tk.Label(ventana, image=imagen_tk)
-label_imagen.pack()
-
-# Mostrar la ventana
-ventana.mainloop()
-
-
-### FIN IMAGEN ###
-"""
