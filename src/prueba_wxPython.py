@@ -67,3 +67,15 @@ if __name__ == '__main__':
     ventana = Ventana(None)
     ventana.Show()
     app.MainLoop()
+
+
+
+# Pros y contras librería wxPython:
+
+# PROS:
+# - Lenguaje simple de utilizar
+# - Bastante información en Internet sobre la librería
+
+# CONTRAS:
+# - Las interfaces se ven desfasadas por la antigüedad de la librería
+# - Problemas a la hora de implementar imágenes a la interfaz
