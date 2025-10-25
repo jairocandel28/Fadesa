@@ -5,59 +5,37 @@ from tkinter import filedialog, messagebox, ttk
 from lector import *
 
 
-# Función para limpiar ventana
-def limpiar_ventana():
+def limpiar_ventana(ventana):
     for widget in ventana.winfo_children():
         widget.destroy()
 
 
+def pantalla_principal(ventana):
+    limpiar_ventana(ventana)
+    ventana.title("Visor de Archivos")
 
-def pantalla_inicio():
-    limpiar_ventana()
-    # Crear una etiqueta
-    etiqueta = tk.Label(ventana, text="¡Hola desde Tkinter!", font=("Arial", 14))
-    etiqueta.pack(pady=10)
+    frame_superior = tk.Frame(ventana)
+    frame_superior.pack(fill="x", pady=10, padx=10)
 
-    # Nueva etiqueta para el cuadro de texto
-    etiqueta_nombre = tk.Label(ventana, text="Introduce tu nombre:")
-    etiqueta_nombre.pack()
+    boton_explorar = tk.Button(frame_superior, text="📁", font=("Arial", 18))
+    boton_explorar.pack(side="left", padx=10)
 
-    # Cuadro de texto (entrada de usuario)
-    entrada = tk.Entry(ventana, width=30)
-    entrada.pack(pady=5)
+    ruta_var = tk.StringVar(value="Ningún archivo seleccionado")
 
-    # Función del botón para saludar
-    def saludar():
-        nombre = entrada.get().strip()  # Obtener texto del cuadro de texto
-        if nombre.strip() == "":
-            messagebox.showwarning("Advertencia", "Por favor, introduce tu nombre.")
-        else:
-            messagebox.showinfo("Saludo", f"¡Hola, {nombre}. Redirigiéndote al menú...")
-            menu(nombre) # Cambiamos al menú
+    etiqueta_ruta = tk.Label(
+        frame_superior, 
+        textvariable=ruta_var, 
+        wraplength=800, 
+        anchor="w",
+        justify="left",
+        fg="blue"
+    )
+    etiqueta_ruta.pack(side="left", fill="x", expand=True, padx=10)
 
-    boton = tk.Button(ventana, text = "Saludar", command=saludar)
-    boton.pack(pady=10)
+    frame_tabla = tk.Frame(ventana, bd=2, relief="groove")
+    frame_tabla.pack(fill="both", expand=True, padx=10, pady=10)
 
 
-
-
-# Pantalla para introducir datos
-def pantalla_analizar_archivo():
-    limpiar_ventana()
-
-    etiqueta = tk.Label(ventana, text="Selecciona el archivo que quieras cargar:", font=("Arial", 14))
-    etiqueta.pack(pady=10)
-
-    ruta_var = tk.StringVar(value="Ningúan archivo seleccionado")
-
-    etiqueta_ruta = tk.Label(ventana, textvariable=ruta_var, wraplength=400, justify="center", fg="blue")
-    etiqueta_ruta.pack(pady=5)
-
-    # Frame para tabla
-    frame_tabla = tk.Frame(ventana)
-    frame_tabla.pack(pady=10, fill="both", expand=True)
-
-    # Función para abrir explorador de archivos
     def explorar_archivo():
         ruta = filedialog.askopenfilename(
             title="Selecciona un archivo",
@@ -73,9 +51,8 @@ def pantalla_analizar_archivo():
         else:
             ruta_var.set("Ningún archivo seleccionado")
 
-    # Función para mostrar datos del archivo
     def mostrar_datos(ruta):
-        # Limpia la tabla anterior si existe
+        # Limpiar tabla anterior
         for widget in frame_tabla.winfo_children():
             widget.destroy()
 
@@ -86,14 +63,13 @@ def pantalla_analizar_archivo():
                 messagebox.showwarning("Archivo vacío", "El archivo no contiene datos o no fue posible cargarlos.")
                 return
             
-            # Para crear la tabla gráficamente
             columnas = list(datos.columns)
             tabla = ttk.Treeview(frame_tabla, columns=columnas, show="headings")
 
             # Encabezados
             for col in columnas:
                 tabla.heading(col, text=col)
-                tabla.column(col, width=100, anchor="center")
+                tabla.column(col, width=120, anchor="center")
 
             # Filas
             for _, fila in datos.iterrows():
@@ -111,43 +87,12 @@ def pantalla_analizar_archivo():
         except Exception as e:
             messagebox.showerror("Error", f"No se pudo mostrar el archivo:\n{e}")
 
-    # Botones
-    boton_explorar = tk.Button(ventana, text="Explorar archivo", command=explorar_archivo)
-    boton_explorar.pack(pady=5)
-
-    boton_volver = tk.Button(ventana, text="Volver al menú", command=lambda: menu("Usuario"))
-    boton_volver.pack(pady=10)    
-
-
-# Pantalla de menú
-def menu(nombre):
-    limpiar_ventana()
-
-    etiqueta = tk.Label(ventana, text=f"Bienvenido, {nombre}. ¿Que deseas hacer?", font=("Arial", 14))
-    etiqueta.pack(pady=10)
-
-    # Botón para ir a introducir datos
-    boton_datos = tk.Button(ventana, text="Introducir un archivo (.csv, .db, .xlsx)", command=pantalla_analizar_archivo)
-    boton_datos.pack(pady=10)
-
-    # Botón para volver al inicio
-    boton_volver = tk.Button(ventana, text="Cerrar sesión", command=pantalla_inicio)
-    boton_volver.pack(pady=10)
-    
+    boton_explorar.config(command=explorar_archivo)
 
 
 
 
 
-if __name__ == "__main__":
-
-    # Crear ventana principal
-    ventana = tk.Tk()
-    ventana.title("-- VENTANA PRINCIPAL --")
-    ventana.geometry("500x300")
-
-    pantalla_inicio()
-    ventana.mainloop()
 
 
 
