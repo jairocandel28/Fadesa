@@ -13,7 +13,7 @@ def limpiar_ventana(ventana):
 
 def pantalla_principal(ventana):
     limpiar_ventana(ventana)
-    ventana.title("Explorado de Archivos")
+    ventana.title("Fadesa")
 
     frame_superior = tk.Frame(ventana)
     frame_superior.pack(fill="x", pady=10, padx=10)
@@ -58,7 +58,7 @@ def pantalla_principal(ventana):
 
 
     # Variables
-    entrada_var = tk.StringVar()
+
     salida_var = tk.StringVar()
     opcion_var = tk.StringVar(value="Eliminar")
 
@@ -80,12 +80,13 @@ def pantalla_principal(ventana):
     #Boton para aplicar preprocesado:
     boton_aplicar = tk.Button(frame_manejo, text="Aplicar preprocesado", bg="#d0f0c0")
     boton_aplicar.pack(pady=5)
-
+    
     # Entrada
-    etiqueta_entrada = tk.Label(frame_inferior, text="Selecciona la columna ENTRADA:")
+    etiqueta_entrada = tk.Label(frame_inferior, text="Selecciona la(s) columna(s) ENTRADA:")
     etiqueta_entrada.pack(side="left", padx=5)
-    combo_entrada = ttk.Combobox(frame_inferior, textvariable=entrada_var, state="readonly", width=30)
-    combo_entrada.pack(side="left", padx=5)
+
+    listbox_entrada = tk.Listbox(frame_inferior, selectmode='multiple', exportselection=False, height=6, width=30)
+    listbox_entrada.pack(side="left", padx=5)
 
     # Salida
     etiqueta_salida = tk.Label(frame_inferior, text="Selecciona la columna SALIDA:")
@@ -169,11 +170,15 @@ def pantalla_principal(ventana):
             hsb.pack(side="bottom", fill="x")
 
             # Actualización de los desplegables con las columnas del archivo
-            combo_entrada["values"] = columnas
+            
+            listbox_entrada.delete(0, tk.END)
+            for col in columnas:
+                listbox_entrada.insert(tk.END, col)
+
             combo_salida["values"] = columnas
 
             # Reiniciar selección anterior y variables
-            entrada_var.set("")
+            #listbox_entrada.set("")       SIUUUUUUUUUUU
             salida_var.set("")
 
             seleccion_entrada["columna"] = None
@@ -181,7 +186,8 @@ def pantalla_principal(ventana):
 
         except Exception as e:
             messagebox.showerror("Error", f"No se pudo mostrar el archivo:\n{e}")
-    
+
+
     def detectar_val_inexistentes(datos):
         if datos is None:
             messagebox.showwarning("Sin datos","Debes cargar un archivo con datos.")
@@ -225,7 +231,8 @@ def pantalla_principal(ventana):
                 try:
                     valor = float(valor)
                 except ValueError:
-                    pass
+                    messagebox.showwarning("Valor incorrecto", "Debes ingresar un número.")
+                    return
                 datos.fillna(valor, inplace=True)
             else:
                 messagebox.showwarning("Opción desconocida", "Ingrese una opción válida.")
@@ -268,9 +275,11 @@ def pantalla_principal(ventana):
 
 
 
-    def seleccionar_entrada(event):
+    def seleccionar_entrada():
         """Guarda la columna seleccionada como entrada."""
-        seleccion_entrada["columna"] = entrada_var.get()
+        seleccion = listbox_entrada.curselection()
+        seleccion_entrada["columnas"] = [listbox_entrada.get(var) for var in seleccion]
+
 
 
     def seleccionar_salida(event):
@@ -279,25 +288,26 @@ def pantalla_principal(ventana):
 
 
     def confirmar_seleccion():
-        entrada = seleccion_entrada["columna"]
+        seleccionar_entrada()
+        entradas = seleccion_entrada.get("columnas", [])
         salida = seleccion_salida["columna"]
 
-        if not entrada or not salida:
+        if not entradas or not salida:
             messagebox.showwarning(
                 "Advertencia",
-                "Por favor, selecciona una columna ENTRADA y una columna SALIDA antes de confirmar."
+                "Por favor, selecciona al menos una columna de ENTRADA y una columna de SALIDA antes de confirmar."
             )
             return
 
         # Confirmación final
         messagebox.showinfo(
             "Selección confirmada",
-            f"Entrada seleccionada: {entrada}\nSalida seleccionada: {salida}"
+            f"Entradas seleccionadas: {', '.join(entradas)}\nSalida seleccionada: {salida}"
         )
 
     # Asociaciones
     boton_explorar.config(command=explorar_archivo)
-    combo_entrada.bind("<<ComboboxSelected>>", seleccionar_entrada)
+    listbox_entrada.bind("<<ComboboxSelected>>", seleccionar_entrada)
     combo_salida.bind("<<ComboboxSelected>>", seleccionar_salida)
     boton_confirmar.config(command=confirmar_seleccion)
 
