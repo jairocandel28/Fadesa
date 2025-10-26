@@ -41,21 +41,32 @@ def pantalla_principal(ventana):
     frame_inferior = tk.Frame(ventana)
     frame_inferior.pack(fill="x", padx=10, pady=10)
 
+    # FRAME PARA DETECCION DE DATOS INEXISTENTES
+    frame_deteccion = tk.LabelFrame(ventana, text='Detección de valores inexistentes', padx=10, pady=10)
+    frame_deteccion.pack(fill="x", padx=10, pady=10)
+
+    boton_detectar = tk.Button(frame_deteccion, text="Detectar valores inexistentes")
+    boton_detectar.pack(side="left", padx=10)
+
+    # Solo un Label para mostrar resultados
+    etiqueta_resultado = tk.Label(frame_deteccion, text="", justify="left")
+    etiqueta_resultado.pack(side="left", padx=10)
+
     # Variables
-    feature_var = tk.StringVar()
-    target_var = tk.StringVar()
+    entrada_var = tk.StringVar()
+    salida_var = tk.StringVar()
 
-    # Feature
-    etiqueta_feature = tk.Label(frame_inferior, text="Selecciona la columna FEATURE:")
-    etiqueta_feature.pack(side="left", padx=5)
-    combo_feature = ttk.Combobox(frame_inferior, textvariable=feature_var, state="readonly", width=30)
-    combo_feature.pack(side="left", padx=5)
+    # Entrada
+    etiqueta_entrada = tk.Label(frame_inferior, text="Selecciona la columna ENTRADA:")
+    etiqueta_entrada.pack(side="left", padx=5)
+    combo_entrada = ttk.Combobox(frame_inferior, textvariable=entrada_var, state="readonly", width=30)
+    combo_entrada.pack(side="left", padx=5)
 
-    # Target
-    etiqueta_target = tk.Label(frame_inferior, text="Selecciona la columna TARGET:")
-    etiqueta_target.pack(side="left", padx=10)
-    combo_target = ttk.Combobox(frame_inferior, textvariable=target_var, state="readonly", width=30)
-    combo_target.pack(side="left", padx=5)
+    # Salida
+    etiqueta_salida = tk.Label(frame_inferior, text="Selecciona la columna SALIDA:")
+    etiqueta_salida.pack(side="left", padx=10)
+    combo_salida = ttk.Combobox(frame_inferior, textvariable=salida_var, state="readonly", width=30)
+    combo_salida.pack(side="left", padx=5)
 
     # Botón para confirmar la selección de columnas
     boton_confirmar = tk.Button(
@@ -67,22 +78,28 @@ def pantalla_principal(ventana):
     boton_confirmar.pack(side="left", padx=15)
 
     # Variables para guardar la selección
-    seleccion_feature = {"columna": None}
-    seleccion_target = {"columna": None}
+    seleccion_entrada = {"columna": None}
+    seleccion_salida = {"columna": None}
 
 
     def explorar_archivo():
         ruta = filedialog.askopenfilename(
             title="Selecciona un archivo",
             filetypes=(
+                ("Todos los archivos", "*.*"),
                 ("Archivos CSV", "*.csv"),
-                ("Archivos Excel", "*.xlsx;*.xls"),
-                ("Archivos DB", "*.db*")
+                ("Archivos Excel XLSX", "*.xlsx"),
+                ("Archivos Excel XLS", "*.xls"),
+                ("Archivos DB", "*.db*"),
+                
             )
         )
+
+
         if ruta:
             ruta_var.set(ruta)
             mostrar_datos(ruta)
+
         else:
             ruta_var.set("Ningún archivo seleccionado")
 
@@ -94,9 +111,13 @@ def pantalla_principal(ventana):
         try:
             datos = leer_archivo(ruta)
 
+
             if datos is None or datos.empty:
                 messagebox.showwarning("Archivo vacío", "El archivo no contiene datos o no fue posible cargarlos.")
                 return
+            
+            boton_detectar.config(command=lambda d=datos: detectar_val_inexistentes(d))
+
             
             columnas = list(datos.columns)
             tabla = ttk.Treeview(frame_tabla, columns=columnas, show="headings")
@@ -120,51 +141,71 @@ def pantalla_principal(ventana):
             hsb.pack(side="bottom", fill="x")
 
             # Actualización de los desplegables con las columnas del archivo
-            combo_feature["values"] = columnas
-            combo_target["values"] = columnas
+            combo_entrada["values"] = columnas
+            combo_salida["values"] = columnas
 
             # Reiniciar selección anterior y variables
-            feature_var.set("")
-            target_var.set("")
+            entrada_var.set("")
+            salida_var.set("")
 
-            seleccion_feature["columna"] = None
-            seleccion_target["columna"] = None
+            seleccion_entrada["columna"] = None
+            seleccion_salida["columna"] = None
 
         except Exception as e:
             messagebox.showerror("Error", f"No se pudo mostrar el archivo:\n{e}")
+    
+    def detectar_val_inexistentes(datos):
+        if datos is None:
+            messagebox.showwarning("Sin datos","Debes cargar un archivo con datos.")
+            return
+        try:
+            nulos_columna = datos.isna().sum()
+            nulos_columna = nulos_columna[nulos_columna>0]
+            if nulos_columna.empty:
+                messagebox.showinfo("Comprobación completada", "No se detectaron valores inexistentes")
+                return
+            total_nulos = int(nulos_columna.sum())
+            texto = f"Se detectaron {total_nulos} valores inexistentes en {len(nulos_columna)} columnas:\n"
+            for col, cantidad in nulos_columna.items():
+                texto += f"• {col}: {cantidad} valores faltantes\n"
+
+            messagebox.showwarning("Valores inexistentes detectados", texto)
+
+        except Exception as e:
+            messagebox.showerror("Error", f"Ocurrió un problema al analizar los datos:\n{e}")
 
 
-    def seleccionar_feature(event):
-        """Guarda la columna seleccionada como feature."""
-        seleccion_feature["columna"] = feature_var.get()
+    def seleccionar_entrada(event):
+        """Guarda la columna seleccionada como entrada."""
+        seleccion_entrada["columna"] = entrada_var.get()
 
 
-    def seleccionar_target(event):
-        """Guarda la columna seleccionada como target."""
-        seleccion_target["columna"] = target_var.get()
+    def seleccionar_salida(event):
+        """Guarda la columna seleccionada como salida."""
+        seleccion_salida["columna"] = salida_var.get()
 
 
     def confirmar_seleccion():
-        feature = seleccion_feature["columna"]
-        target = seleccion_target["columna"]
+        entrada = seleccion_entrada["columna"]
+        salida = seleccion_salida["columna"]
 
-        if not feature or not target:
+        if not entrada or not salida:
             messagebox.showwarning(
                 "Advertencia",
-                "Por favor, selecciona una columna FEATURE y una columna TARGET antes de confirmar."
+                "Por favor, selecciona una columna ENTRADA y una columna SALIDA antes de confirmar."
             )
             return
 
         # Confirmación final
         messagebox.showinfo(
             "Selección confirmada",
-            f"Feature seleccionada: {feature}\nTarget seleccionada: {target}"
+            f"Entrada seleccionada: {entrada}\nSalida seleccionada: {salida}"
         )
 
     # Asociaciones
     boton_explorar.config(command=explorar_archivo)
-    combo_feature.bind("<<ComboboxSelected>>", seleccionar_feature)
-    combo_target.bind("<<ComboboxSelected>>", seleccionar_target)
+    combo_entrada.bind("<<ComboboxSelected>>", seleccionar_entrada)
+    combo_salida.bind("<<ComboboxSelected>>", seleccionar_salida)
     boton_confirmar.config(command=confirmar_seleccion)
 
 
