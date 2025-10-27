@@ -20,9 +20,7 @@ def leer_archivo(ruta):
             print("Formato no soportado. El archivo debe ser .csv, .xlsx/.xls. o .db")
             return datos
 
-        print("Datos cargados exitosamente:")
-        print(datos.head(10))  # Muestra las primeras 10 filas del dataset
-        return datos # En caso de querer devolver todos los datos
+        return datos
 
     except Exception as e:
         print(f"Error al leer el archivo: {e}")
