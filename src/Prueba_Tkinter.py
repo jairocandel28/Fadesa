@@ -18,7 +18,7 @@ def pantalla_principal(ventana):
     frame_superior = tk.Frame(ventana)
     frame_superior.pack(fill="x", pady=10, padx=10)
 
-    boton_explorar = tk.Button(frame_superior, text="📁", font=("Arial", 18))
+    boton_explorar = tk.Button(frame_superior, text="📁 ABRIR ARCHIVO", font=("Arial", 14))
     boton_explorar.pack(side="left", padx=10)
 
     ruta_var = tk.StringVar(value="Ningún archivo seleccionado")
@@ -112,7 +112,6 @@ def pantalla_principal(ventana):
         ruta = filedialog.askopenfilename(
             title="Selecciona un archivo",
             filetypes=(
-                ("Todos los archivos", "*.*"),
                 ("Archivos CSV", "*.csv"),
                 ("Archivos Excel XLSX", "*.xlsx"),
                 ("Archivos Excel XLS", "*.xls"),
