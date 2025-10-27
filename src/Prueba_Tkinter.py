@@ -192,10 +192,20 @@ def pantalla_principal(ventana):
             messagebox.showwarning("Sin datos","Debes cargar un archivo con datos.")
             return
         try:
-            nulos_columna = datos.isna().sum()
+            """nulos_columna = datos.isna().sum()
+            nulos_columna = nulos_columna[nulos_columna>0]"""
+            seleccion = listbox_entrada.curselection()
+            seleccion_entrada = [listbox_entrada.get(var) for var in seleccion]
+
+            if not seleccion_entrada:
+
+                messagebox.showinfo("Error", "Debes seleccionar al menos una columna")
+                return
+            datos_f = datos[seleccion_entrada]
+            nulos_columna = datos_f.isna().sum()
             nulos_columna = nulos_columna[nulos_columna>0]
             if nulos_columna.empty:
-                messagebox.showinfo("Comprobación completada", "No se detectaron valores inexistentes")
+                messagebox.showinfo("Comprobación completada", "No se detectaron valores inexistentes.")
                 return
             total_nulos = int(nulos_columna.sum())
             texto = f"Se detectaron {total_nulos} valores inexistentes en {len(nulos_columna)} columnas:\n"
