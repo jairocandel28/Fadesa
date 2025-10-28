@@ -41,6 +41,12 @@ def pantalla_principal(ventana):
     frame_inferior = tk.Frame(ventana)
     frame_inferior.pack(fill="x", padx=10, pady=10)
 
+    frame_entrada = tk.Frame(frame_inferior)
+    frame_entrada.pack(side="left", padx=20, anchor="n")
+
+    frame_salida = tk.Frame(frame_inferior)
+    frame_salida.pack(side="left", padx=40, anchor="n")
+
     # FRAME PARA DETECCION DE DATOS INEXISTENTES
     frame_deteccion = tk.LabelFrame(ventana, text='Detección de valores inexistentes', padx=10, pady=10)
     frame_deteccion.pack(fill="x", padx=10, pady=10)
@@ -53,7 +59,6 @@ def pantalla_principal(ventana):
 
     #FRAME PARA MANEJO DE ERRORES:
     frame_manejo = tk.LabelFrame(ventana, text='Manejo de valores inexistentes', padx=10, pady=10)
-    frame_manejo.pack(fill="x", padx=10, pady=10)
 
 
 
@@ -82,26 +87,26 @@ def pantalla_principal(ventana):
     boton_aplicar.pack(pady=5)
     
     # Entrada
-    etiqueta_entrada = tk.Label(frame_inferior, text="Selecciona la(s) columna(s) ENTRADA:")
-    etiqueta_entrada.pack(side="left", padx=5)
+    etiqueta_entrada = tk.Label(frame_entrada, text="Selecciona la(s) columna(s) ENTRADA:")
+    etiqueta_entrada.pack(anchor="w")
 
-    listbox_entrada = tk.Listbox(frame_inferior, selectmode='multiple', exportselection=False, height=6, width=30)
-    listbox_entrada.pack(side="left", padx=5)
+    listbox_entrada = tk.Listbox(frame_entrada, selectmode='multiple', exportselection=False, height=6, width=30)
+    listbox_entrada.pack(pady=5)
 
     # Salida
-    etiqueta_salida = tk.Label(frame_inferior, text="Selecciona la columna SALIDA:")
-    etiqueta_salida.pack(side="left", padx=10)
-    combo_salida = ttk.Combobox(frame_inferior, textvariable=salida_var, state="readonly", width=30)
-    combo_salida.pack(side="left", padx=5)
+    etiqueta_salida = tk.Label(frame_salida, text="Selecciona la columna SALIDA:")
+    etiqueta_salida.pack(anchor="w")
+    combo_salida = ttk.Combobox(frame_salida, textvariable=salida_var, state="readonly", width=30)
+    combo_salida.pack(pady=5)
 
     # Botón para confirmar la selección de columnas
     boton_confirmar = tk.Button(
-        frame_inferior, 
+        frame_salida, 
         text="CONFIRMAR SELECCIÓN", 
         font=("Arial", 10, "bold"),
         bg="#d0f0c0"
     )
-    boton_confirmar.pack(side="left", padx=15)
+    boton_confirmar.pack(pady=10)
 
     # Variables para guardar la selección
     seleccion_entrada = {"columna": None}
@@ -207,6 +212,7 @@ def pantalla_principal(ventana):
             if nulos_columna.empty:
                 messagebox.showinfo("Comprobación completada", "No se detectaron valores inexistentes.")
                 return
+            frame_manejo.pack(fill="x", padx=10, pady=10)
             total_nulos = int(nulos_columna.sum())
             texto = f"Se detectaron {total_nulos} valores inexistentes en {len(nulos_columna)} columnas:\n"
             for col, cantidad in nulos_columna.items():
