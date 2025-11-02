@@ -48,8 +48,18 @@ print("Error Cuadrático Medio:", ECM)
 print("R²:", r2)
 print("Coeficientes:", dict(zip(columnas_entrada, modelo.coef_)))
 
+#Probamos librería statsmodels
+X = datos[columnas_entrada]
+y = datos[columna_salida]
 
+#rellenar con mediana(para el ejemplo)
+X = X.fillna(X.median())
+y = y.fillna(y.median())
 
+X = sm.add_constant(X)  
+modelo = sm.OLS(y, X)  
+resultado = modelo.fit()
+print(resultado.summary())
 
 
 
