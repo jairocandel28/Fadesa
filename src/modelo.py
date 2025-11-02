@@ -4,6 +4,8 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 import statsmodels.api as sm
 
+import pickle
+import joblib
 
 def separacion_entrenamiento_test(datos: pd.DataFrame, columnas_entrada, columna_salida, porcentaje_test=0.2, random_state=42):
     """Divide los datos en conjuntos de entrenamiento y prueba de forma aleatoria pero reproducible. 
@@ -22,7 +24,8 @@ def separacion_entrenamiento_test(datos: pd.DataFrame, columnas_entrada, columna
     return X_train, X_test, y_train, y_test
 
 
-ruta_archivo = r"C:\Users\jairo\Desktop\Fadesa\Fadesa-3\docs\housing.csv"
+#ruta_archivo = r"C:\Users\jairo\Desktop\Fadesa\Fadesa-3\docs\housing.csv"
+ruta_archivo = r"C:\Users\mateo\Desktop\Fadesa\Fadesa\docs\housing.csv"
 datos = pd.read_csv(ruta_archivo)
 
 columnas_entrada = ["longitude", "latitude", "housing_median_age", "total_rooms",
@@ -62,4 +65,38 @@ resultado = modelo.fit()
 print(resultado.summary())
 
 
+# Guardado y carga de modelos con Pickle 
 
+with open("modelo_pickle.pkl", "wb") as file:
+    pickle.dump(modelo, file)
+
+with open("modelo_pickle.pkl", "rb") as file:
+    modelo_pickle = pickle.load(file)
+
+resultado_pickle = modelo_pickle.fit()
+print(resultado_pickle.summary())
+
+
+# Guardado y carga de modelos con Joblib
+
+joblib.dump(modelo, "modelo_joblib.pkl")
+
+modelo_joblib = joblib.load("modelo_joblib.pkl")
+
+resultado_joblib = modelo_joblib.fit()
+print(resultado_joblib.summary())
+
+
+
+
+# Ventajas y desventajas entre Pickle y Joblib:
+
+# Pickle es más rápido para objetos pequeños por lo que el archivo generado será de un menor tamaño,
+# en nuestro caso al utilizar modelos con un gran número de objetos esta biblioteca no está optimizada para ello.
+# Por el contrario, Joblib sí es más eficiente en esta tarea, además por defecto guarda los archivos comprimidos 
+# lo que reduce el tamaño de dichos archivos.
+
+# Ya que utilizamos la librería scikit-learn para crear los modelos, es más recomendado Joblib.
+
+# Joblib requiere de previa instlación a diferencia de Pickle que ya viene ingreado en la biblioteca por defecto de Python.
+# En cuanto a lo hora de utilizar las funciones de ambos métodos la sintaxis es similar siendo la de Joblib más simple a mi juicio.
