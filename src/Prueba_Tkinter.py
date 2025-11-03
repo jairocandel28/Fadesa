@@ -197,8 +197,7 @@ def pantalla_principal(ventana):
             datos_f = datos_param[seleccion_entrada_local]
             nulos_columna = datos_f.isna().sum()
             nulos_columna = nulos_columna[nulos_columna > 0]
-
-            frame_manejo.pack(fill="x", padx=10, pady=10)
+                   
 
             if nulos_columna.empty:
                 messagebox.showinfo("Comprobación completada", "No se detectaron valores inexistentes.")
@@ -208,6 +207,7 @@ def pantalla_principal(ventana):
                 for col, cantidad in nulos_columna.items():
                     texto += f"• {col}: {cantidad} valores faltantes\n"
                 messagebox.showwarning("Valores inexistentes detectados", texto)
+                frame_manejo.pack(fill="x", padx=10, pady=10)
 
             mostrar_panel_separacion()
 
@@ -250,7 +250,7 @@ def pantalla_principal(ventana):
             messagebox.showerror("Error", f"Ocurrió un problema al aplicar el preprocesado:\n{e}")
 
 
-    # --- SEPARACIÓN DE DATOS ANDER ---
+    # --- SEPARACIÓN DE DATOS ---
 
 
     def mostrar_panel_separacion():
