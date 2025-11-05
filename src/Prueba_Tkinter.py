@@ -14,9 +14,43 @@ def pantalla_principal(ventana):
     limpiar_ventana(ventana)
     ventana.title("Fadesa")
 
+    # === NUEVO: MARCO PRINCIPAL CON SCROLL ===
+    # Frame contenedor principal
+    main_frame = tk.Frame(ventana)
+    main_frame.pack(fill="both", expand=True)
+
+    # Canvas que contendrá todo el contenido desplazable
+    canvas = tk.Canvas(main_frame)
+    canvas.pack(side="left", fill="both", expand=True)
+
+    # Barra vertical
+    scrollbar = ttk.Scrollbar(main_frame, orient="vertical", command=canvas.yview)
+    scrollbar.pack(side="right", fill="y")
+
+    # Vincular la barra
+    canvas.configure(yscrollcommand=scrollbar.set)
+
+    # Frame interno que contendrá todos los widgets
+    content_frame = tk.Frame(canvas)
+    content_frame.bind(
+        "<Configure>",
+        lambda e: canvas.configure(scrollregion=canvas.bbox("all"))  # Actualiza el área desplazable
+    )
+    canvas.create_window((0, 0), window=content_frame, anchor="nw")
+
+    # Asegurar que el contenido se expanda al ancho de la ventana
+    def resize_canvas(event):
+        canvas.itemconfig("all", width=event.width)
+    canvas.bind("<Configure>", resize_canvas)
+
+    # Permitir scroll con la rueda del ratón
+    def _on_mousewheel(event):
+        canvas.yview_scroll(int(-1*(event.delta / 120)), "units")
+    canvas.bind_all("<MouseWheel>", _on_mousewheel)
+
     datos = None
 
-    frame_superior = tk.Frame(ventana)
+    frame_superior = tk.Frame(content_frame)
     frame_superior.pack(fill="x", pady=10, padx=10)
 
     boton_explorar = tk.Button(frame_superior, text="📁 ABRIR ARCHIVO", font=("Arial", 14))
@@ -35,11 +69,15 @@ def pantalla_principal(ventana):
     etiqueta_ruta.pack(side="left", fill="x", expand=True, padx=10)
 
     # FRAME TABLA
-    frame_tabla = tk.Frame(ventana, bd=2, relief="groove")
+    frame_tabla = tk.Frame(content_frame, bd=2, relief="groove", height=200)
     frame_tabla.pack(fill="both", expand=True, padx=10, pady=10)
 
+    # Placeholder para mostrar el marco incluso antes de cargar archivo
+    placeholder = tk.Label(frame_tabla, text="📄 Carga un archivo para ver los datos", fg="gray")
+    placeholder.pack(pady=20)
+
     # FRAME PARA LOS SELECTORES DE COLUMNAS
-    frame_inferior = tk.Frame(ventana)
+    frame_inferior = tk.Frame(content_frame)
     frame_inferior.pack(fill="x", padx=10, pady=10)
 
     frame_entrada = tk.Frame(frame_inferior)
@@ -49,7 +87,7 @@ def pantalla_principal(ventana):
     frame_salida.pack(side="left", padx=40, anchor="n")
 
     # FRAME PARA DETECCION DE DATOS INEXISTENTES
-    frame_deteccion = tk.LabelFrame(ventana, text='Detección de valores inexistentes', padx=10, pady=10)
+    frame_deteccion = tk.LabelFrame(content_frame, text='Detección de valores inexistentes', padx=10, pady=10)
     frame_deteccion.pack(fill="x", padx=10, pady=10)
 
     boton_detectar = tk.Button(frame_deteccion, text="Detectar valores inexistentes")
@@ -59,7 +97,7 @@ def pantalla_principal(ventana):
     etiqueta_resultado.pack(side="left", padx=10)
 
     # FRAME PARA MANEJO DE ERRORES:
-    frame_manejo = tk.LabelFrame(ventana, text='Manejo de valores inexistentes', padx=10, pady=10)
+    frame_manejo = tk.LabelFrame(content_frame, text='Manejo de valores inexistentes', padx=10, pady=10)
 
     # Variables
     salida_var = tk.StringVar()
@@ -107,7 +145,7 @@ def pantalla_principal(ventana):
     boton_confirmar.pack(pady=10)
 
     # Frame para SEPARACIÓN DE DATOS
-    frame_modelo = tk.LabelFrame(ventana, text='Separación de datos', padx=10, pady=10)
+    frame_modelo = tk.LabelFrame(content_frame, text='Separación de datos', padx=10, pady=10)
     # Se mostrará solo cuando corresponda
 
     # Variables para guardar la selección
