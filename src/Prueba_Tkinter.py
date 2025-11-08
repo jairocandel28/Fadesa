@@ -1,8 +1,10 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
+import matplotlib.pyplot as plt
 
 from lector import *
 from modelo import separacion_entrenamiento_test
+from modelo import crear_modelo_lineal
 
 
 def limpiar_ventana(ventana):
@@ -321,6 +323,14 @@ def pantalla_principal(ventana):
         )
         boton_aplicar_sep.grid(row=3, column=0, columnspan=2, pady=10)
 
+        boton_modelo = tk.Button(
+            frame_modelo, 
+            text="Crear modelo lineal", 
+            bg="#90EE90", 
+            command=lambda: crear_modelo_lineal_gui()
+        )
+        boton_modelo.grid(row=4, column=0, columnspan=2, pady=10)
+
 
     def ejecutar_separacion(train_size, test_size, random_state):
         """Ejecuta la separación de datos con los valores introducidos"""
@@ -361,6 +371,61 @@ def pantalla_principal(ventana):
 
         except Exception as e:
             messagebox.showerror("Error", f"Ocurrió un error al separar los datos:\n{e}")
+
+
+    def crear_modelo_lineal_gui():
+        try:
+            columnas_entrada = seleccion_entrada.get("columnas", [])
+            columna_salida = seleccion_salida["columna"]
+
+            if not columnas_entrada or not columna_salida:
+                messagebox.showwarning("Faltan columnas", "Selecciona columnas de entrada y salida antes de continuar")
+                return
+            
+            if datos is None or len(datos) < 5:
+                messagebox.showwarning("Sin datos", "Primero carga y prepara los datos.")
+                return
+            
+            # Dividir en entrenamiento y test
+            X_train, X_test, y_train, y_test = separacion_entrenamiento_test(
+                datos, columnas_entrada, columna_salida, porcentaje_test=0.2, random_state=42
+            )
+
+            # Crear y evaluar el modelo
+            resultados = crear_modelo_lineal(X_train, X_test, y_train, y_test, columnas_entrada)
+
+            # Mostrar métricas y fórmula
+            texto = (
+                f"📈 Modelo lineal creado correctamente\n\n"
+                f"Fórmula:\n{columna_salida} = {resultados['formula']}\n\n"
+                f"Entrenamiento:\n"
+                f"  R² = {resultados['r2_train']:.4f}\n"
+                f"  ECM = {resultados['ecm_train']:.4f}\n\n"
+                f"Test:\n"
+                f"  R² = {resultados['r2_test']:.4f}\n"
+                f"  ECM = {resultados['ecm_test']:.4f}"
+            )
+
+            messagebox.showinfo("Modelo creado", texto)
+
+            # Mostrar gráfico si hay una sola variable de entrada
+            if len(columnas_entrada) == 1:
+                col = columnas_entrada[0]
+                plt.figure(figsize=(7, 5))
+                plt.scatter(X_train[col], y_train, color="blue", label="Entrenamiento")
+                plt.scatter(X_test[col], y_test, color="orange", label="Test")
+                plt.plot(X_train[col], resultados["y_train_pred"], color="green", label="Recta de ajuste")
+                plt.xlabel(col)
+                plt.ylabel(columna_salida)
+                plt.title("Regresión lineal: entrenamiento vs test")
+                plt.legend()
+                plt.show()
+            else:
+                messagebox.showinfo("Gráfico no disponible", "El gráfico solo se genera si hay una variable de entrada numérica.")
+
+        except Exception as e:
+            messagebox.showerror("Error al crear modelo", str(e))
+    
 
 
     def seleccionar_entrada():
