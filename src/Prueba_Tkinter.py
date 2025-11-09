@@ -396,7 +396,7 @@ def pantalla_principal(ventana):
 
             # Mostrar métricas y fórmula
             texto = (
-                f"📈 Modelo lineal creado correctamente\n\n"
+                f"Modelo lineal creado correctamente\n\n"
                 f"Fórmula:\n{columna_salida} = {resultados['formula']}\n\n"
                 f"Entrenamiento:\n"
                 f"  R² = {resultados['r2_train']:.4f}\n"
@@ -423,9 +423,44 @@ def pantalla_principal(ventana):
             else:
                 messagebox.showinfo("Gráfico no disponible", "El gráfico solo se genera si hay una variable de entrada numérica.")
 
+            # === panel para descripción del modelo ===
+            mostrar_descripcion_modelo(resultados)
+
         except Exception as e:
             messagebox.showerror("Error al crear modelo", str(e))
-    
+
+
+    # === crea el área de texto para descripción del modelo ===
+    def mostrar_descripcion_modelo(resultados):
+        """Muestra un área de texto donde el usuario puede escribir una descripción del modelo."""
+        frame_descripcion = tk.LabelFrame(content_frame, text="Descripción del modelo", padx=10, pady=10)
+        frame_descripcion.pack(fill="x", padx=10, pady=10)
+
+        tk.Label(frame_descripcion, text="Escribe una descripción para este modelo:").pack(anchor="w")
+
+        # Área de texto grande
+        texto_descripcion = tk.Text(frame_descripcion, width=100, height=6, wrap="word")
+        texto_descripcion.pack(pady=5)
+
+        # Función para guardar la descripción
+        def guardar_descripcion():
+            descripcion = texto_descripcion.get("1.0", tk.END).strip()
+            if descripcion == "":
+                messagebox.showwarning("Descripción vacía", "No se ha escrito ninguna descripción (se guardará como vacía).")
+            # Guardar descripción junto al modelo
+            try:
+                with open("descripcion_modelo.txt", "w", encoding="utf-8") as f:
+                    f.write("=== Descripción del modelo ===\n\n")
+                    f.write(f"Fórmula: {resultados['formula']}\n\n")
+                    f.write(f"Descripción del usuario:\n{descripcion if descripcion else '(sin descripción)'}\n")
+                messagebox.showinfo("Guardado", "La descripción del modelo se ha guardado correctamente en 'descripcion_modelo.txt'.")
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo guardar la descripción:\n{e}")
+
+        # Botón para guardar descripción
+        boton_guardar_desc = tk.Button(frame_descripcion, text="💾 Guardar descripción", bg="#c0f0ff", command=guardar_descripcion)
+        boton_guardar_desc.pack(pady=5)
+
 
 
     def seleccionar_entrada():
