@@ -3,8 +3,7 @@ from tkinter import filedialog, messagebox, ttk
 import matplotlib.pyplot as plt
 
 from lector import *
-from modelo import separacion_entrenamiento_test
-from modelo import crear_modelo_lineal
+from modelo import *
 
 
 import joblib
@@ -62,6 +61,9 @@ def pantalla_principal(ventana):
 
     boton_explorar = tk.Button(frame_superior, text="📁 ABRIR ARCHIVO", font=("Arial", 14))
     boton_explorar.pack(side="left", padx=10)
+
+    boton_cargar = tk.Button(frame_superior, text="📁 CARGAR MODELO", font=("Arial", 14))
+    boton_cargar.pack(side="right", padx=10)
 
     ruta_var = tk.StringVar(value="Ningún archivo seleccionado")
 
@@ -378,7 +380,7 @@ def pantalla_principal(ventana):
             messagebox.showerror("Error", f"Ocurrió un error al separar los datos:\n{e}")
 
 
-# ---CREACIÓN Y GUARDADO DEL MODELO---
+    # ---CREACIÓN Y GUARDADO DEL MODELO---
     def crear_modelo_lineal_gui():
         try:
           
@@ -452,7 +454,7 @@ def pantalla_principal(ventana):
                     'ecm_test': resultados.get('ecm_test')
                 }
 
-                # 4. Llamar a la función de guardado global
+                # Llamar a la función de guardado global
                 guardar_modelo(
                     modelo=modelo_obj,
                     columnas_entrada=columnas_entrada, # Ya las tenemos de esta función
@@ -535,6 +537,80 @@ def pantalla_principal(ventana):
                 "Por favor, verifica los permisos de escritura o el espacio en disco.")
 
 
+    def cargar_modelo():
+        ruta = filedialog.askopenfilename(
+            title="Selecciona un archivo",
+            filetypes=(
+                ("Archivos Joblib", "*.joblib"),
+                ("Archivos Pickle", "*.pkl"),
+                ("Todos los archivos", "*.*"),
+            )
+        )
+
+        if not ruta:
+            ruta_var.set("Ningún archivo seleccionado")
+            return
+
+        try:
+            modelo_cargado = joblib.load(ruta)
+
+            if not isinstance(modelo_cargado, dict):
+                raise ValueError("El archivo no contiene un diccionario válido.")
+
+        except Exception as e:
+            messagebox.showerror(
+                "Error al cargar archivo",
+                "No se pudo cargar el archivo seleccionado."
+            )
+            return
+
+        limpiar_ventana(ventana)
+            
+        main_frame = tk.Frame(ventana)
+        main_frame.pack(fill="both", expand=True)
+
+        canvas = tk.Canvas(main_frame)
+        canvas.pack(side="left", fill="both", expand=True)
+
+        content_frame = tk.Frame(canvas)
+        canvas.create_window((0, 0), window=content_frame, anchor="nw")
+
+        frame_superior = tk.Frame(content_frame)
+        frame_superior.pack(fill="x", pady=10, padx=10)
+
+        modelo_cargado = joblib.load(ruta)  # Diccionario
+
+        información = (
+            f"Modelo: {modelo_cargado['modelo_objeto']}\n\n"
+            f"Columnas de entrada: {modelo_cargado['columnas_entrada']}\n\n"
+            f"Columna de salida: {modelo_cargado['columna_salida']}\n\n"
+            f"Métricas:\n"
+            f"  - R2 Train: {modelo_cargado['metricas']['r2_train']}\n"
+            f"  - R2 Test: {modelo_cargado['metricas']['r2_test']}\n"
+            f"  - ECM Train: {modelo_cargado['metricas']['ecm_train']}\n"
+            f"  - ECM Test: {modelo_cargado['metricas']['ecm_test']}\n\n"
+            f"Descripción:\n"
+            f"{modelo_cargado['descripcion']}\n\n"
+            f"Fórmula: {modelo_cargado['formula']}\n"
+        )
+
+        label = tk.Label(frame_superior, text = información, font=("Arial", 14))
+        label.pack(padx = 10, pady=10)
+
+
+        boton_regresar = tk.Button(frame_superior, text="⬅️ VOLVER A LA PANTALLA DE INICIO", font=("Arial", 14))
+        boton_regresar.pack(side="bottom", padx=10)
+
+        boton_regresar.config(command=lambda: pantalla_principal(ventana))
+
+
+        messagebox.showinfo(
+            "Cargar modelo",
+            f"El modelo ha sido cargado exitosamente"
+        )
+        
+
+
 
     def seleccionar_entrada():
         seleccion = listbox_entrada.curselection()
@@ -564,3 +640,4 @@ def pantalla_principal(ventana):
     boton_explorar.config(command=explorar_archivo)
     combo_salida.bind("<<ComboboxSelected>>", seleccionar_salida)
     boton_confirmar.config(command=confirmar_seleccion)
+    boton_cargar.config(command=cargar_modelo)
