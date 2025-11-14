@@ -56,8 +56,8 @@ def crear_modelo_lineal(X_train, X_test, y_train, y_test, columnas_entrada):
 
     return resultados 
 
-#ruta_archivo = r"C:\Users\jairo\Desktop\Fadesa\Fadesa-3\docs\housing.csv"
-ruta_archivo = r"C:\Users\ivanp\Desktop\Fadesa-1\docs\housing.csv"
+ruta_archivo = r"C:\Users\jairo\Desktop\Fadesa\Fadesa-3\docs\housing.csv"
+#ruta_archivo = r"C:\Users\ivanp\Desktop\Fadesa-1\docs\housing.csv"
 datos = pd.read_csv(ruta_archivo)
 
 columnas_entrada = ["longitude", "latitude", "housing_median_age", "total_rooms",
