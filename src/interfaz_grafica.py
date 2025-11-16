@@ -17,11 +17,11 @@ def limpiar_ventana(ventana):
 
 
 def pantalla_principal(ventana):
+    """Función principal para ejecutar la interfaz gráfica."""
     limpiar_ventana(ventana)
     ventana.title("Fadesa")
 
-    # === NUEVO: MARCO PRINCIPAL CON SCROLL ===
-    # Frame contenedor principal
+    # Frame principal
     main_frame = tk.Frame(ventana)
     main_frame.pack(fill="both", expand=True)
 
@@ -51,7 +51,7 @@ def pantalla_principal(ventana):
         canvas.itemconfig("all", width=event.width)
     canvas.bind("<Configure>", resize_canvas)
 
-    # Permitir scroll con la rueda del ratón
+    # Permitir bajar con la rueda del ratón
     def _on_mousewheel(event):
         canvas.yview_scroll(int(-1*(event.delta / 120)), "units")
     canvas.bind_all("<MouseWheel>", _on_mousewheel)
@@ -85,18 +85,19 @@ def pantalla_principal(ventana):
     frame_tabla = tk.Frame(content_frame, bd=2, relief="groove", height=200)
     frame_tabla.pack(fill="both", expand=True, padx=10, pady=10)
 
-    # Placeholder para mostrar el marco incluso antes de cargar archivo
+    #mostrar el marco incluso antes de cargar archivo
     placeholder = tk.Label(
         frame_tabla, text="📄 Carga un archivo para ver los datos", fg="gray")
     placeholder.pack(pady=20)
 
-    # FRAME PARA LOS SELECTORES DE COLUMNAS
+    # FRAME PARA LOS SELECTORES DE COLUMNAS DE ENTRADA
     frame_inferior = tk.Frame(content_frame)
     frame_inferior.pack(fill="x", padx=10, pady=10)
 
     frame_entrada = tk.Frame(frame_inferior)
     frame_entrada.pack(side="left", padx=20, anchor="n")
 
+    # FRAME PARA LOS SELECTORES DE COLUMNAS DE SALIDA
     frame_salida = tk.Frame(frame_inferior)
     frame_salida.pack(side="left", padx=40, anchor="n")
 
@@ -173,7 +174,6 @@ def pantalla_principal(ventana):
     # Frame para SEPARACIÓN DE DATOS
     frame_modelo = tk.LabelFrame(
         content_frame, text='Separación de datos', padx=10, pady=10)
-    # Se mostrará solo cuando corresponda
 
     # Variables para guardar la selección
     seleccion_entrada = {"columna": None}
@@ -199,6 +199,8 @@ def pantalla_principal(ventana):
             ruta_var.set("Ningún archivo seleccionado")
 
     def mostrar_datos(ruta):
+        """Muestra la tabla con los datos del dataframe que haya seleccionado
+        el usuario."""
         for widget in frame_tabla.winfo_children():
             widget.destroy()
 
@@ -229,7 +231,7 @@ def pantalla_principal(ventana):
 
             tabla.pack(fill="both", expand=True)
 
-            # Scrollbars
+            #Barra lateral
             vsb = ttk.Scrollbar(
                 frame_tabla, orient="vertical", command=tabla.yview)
             hsb = ttk.Scrollbar(
@@ -253,6 +255,9 @@ def pantalla_principal(ventana):
                 "Error", f"No se pudo mostrar el archivo:\n{e}")
 
     def detectar_val_inexistentes(datos_param):
+        """Detecta si existe algún valor inexistente en las columnas de entrada
+        seleccionadas por el usuario. Además, muestra en qué columnas y cuantos
+        valores inexistentes hay en cada una."""
         if datos_param is None:
             messagebox.showwarning(
                 "Sin datos", "Debes cargar un archivo con datos.")
@@ -290,6 +295,9 @@ def pantalla_principal(ventana):
                 "Error", f"Ocurrió un problema al analizar los datos:\n{e}")
 
     def aplicar_preprocesado(datos_param):
+        """Ejecuta la opción de preprocesado seleccionada por el usuario:
+        Rellenar con media o mediana, con una constante o eliminar aquellas
+        filas en las que haya algún dato inexistente."""
         if datos_param is None:
             messagebox.showwarning(
                 "Sin datos", "Debes cargar un archivo con datos.")
@@ -421,6 +429,9 @@ def pantalla_principal(ventana):
     # ---CREACIÓN Y GUARDADO DEL MODELO---
 
     def crear_modelo_lineal_gui():
+        """Crea el modelo lineal con las entradas y la salida que el usuario ha seleccionado anteriormente.
+        También muestra la fórmula y los datos de entrenamiento, así como una gráfica cuando el usuario sólo
+        ha seleccionado una entrada."""
         try:
 
             columnas_entrada = seleccion_entrada.get("columnas", [])
@@ -486,6 +497,8 @@ def pantalla_principal(ventana):
             texto_descripcion.pack(pady=5, fill="x", expand=True)
 
             def preparar_y_guardar_modelo():
+                """Obtiene los datos del modelo e implementa un botón en la interfaz que le permita
+                al usuario guardar dicho modelo."""
                 descripcion = texto_descripcion.get("1.0", tk.END).strip()
 
                 # Obtener el objeto del modelo desde los resultados
@@ -502,11 +515,10 @@ def pantalla_principal(ventana):
                     'ecm_test': resultados.get('ecm_test')
                 }
 
-                # Llamar a la función de guardado global
                 guardar_modelo(
                     modelo=modelo_obj,
-                    columnas_entrada=columnas_entrada,  # Ya las tenemos de esta función
-                    columna_salida=columna_salida,   # Ya la tenemos de esta función
+                    columnas_entrada=columnas_entrada, 
+                    columna_salida=columna_salida, 
                     metricas=metricas,
                     descripcion=descripcion)
 
@@ -556,7 +568,8 @@ def pantalla_principal(ventana):
         boton_guardar_desc.pack(pady=5)
 
     def guardar_modelo(modelo, columnas_entrada, columna_salida, metricas, descripcion):
-        """Implementa el método para guardar un modelo."""
+        """Implementa el método para guardar un modelo en la ubicación que 
+        desee el usuario."""
         try:
             pedir_usuario = filedialog.asksaveasfilename(
                 title="Guardar modelo",
@@ -576,7 +589,7 @@ def pantalla_principal(ventana):
                 'descripcion': descripcion,
                 'formula': f"{modelo.intercept_:.4f} + " + " + ".join([f"{coef:.4f} * {col}" for coef, col in zip(modelo.coef_, columnas_entrada)])}
 
-            joblib.dump(datos_para_guardar, pedir_usuario)  # guarda el modelo
+            joblib.dump(datos_para_guardar, pedir_usuario)
 
             messagebox.showinfo(
                 "Guardado exitoso",
@@ -589,6 +602,7 @@ def pantalla_principal(ventana):
                 "Por favor, verifica los permisos de escritura o el espacio en disco.")
 
     def cargar_modelo():
+        """Implementa el método para cargar un modelo que el usuario ha guardado anteriormente."""
         ruta = filedialog.askopenfilename(
             title="Selecciona un archivo",
             filetypes=(
@@ -630,7 +644,7 @@ def pantalla_principal(ventana):
         frame_superior = tk.Frame(content_frame)
         frame_superior.pack(fill="x", pady=10, padx=10)
 
-        modelo_cargado = joblib.load(ruta)  # Diccionario
+        modelo_cargado = joblib.load(ruta) 
 
         información = (
             f"Modelo: {modelo_cargado['modelo_objeto']}\n\n"
@@ -657,18 +671,21 @@ def pantalla_principal(ventana):
 
         messagebox.showinfo(
             "Cargar modelo",
-            f"El modelo ha sido cargado exitosamente"
+            f"El modelo ha sido cargado exitosamente."
         )
 
     def seleccionar_entrada():
+        """Guarda la(s) entrada(s) seleccionada por el usuario."""
         seleccion = listbox_entrada.curselection()
         seleccion_entrada["columnas"] = [
             listbox_entrada.get(var) for var in seleccion]
 
     def seleccionar_salida(event):
+        """Guarda la salida seleccionada por el usuario."""
         seleccion_salida["columna"] = salida_var.get()
 
     def confirmar_seleccion():
+        """Permite al usuario confirmar la selección de la entrada y la salida."""
         seleccionar_entrada()
         entradas = seleccion_entrada.get("columnas", [])
         salida = seleccion_salida["columna"]
