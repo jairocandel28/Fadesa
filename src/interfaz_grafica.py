@@ -2,8 +2,8 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 import matplotlib.pyplot as plt
 
-from lector import *
-from modelo import *
+from lector import leer_archivo
+from modelo import crear_modelo_lineal
 
 
 import joblib
