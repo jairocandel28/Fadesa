@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
-
 from lector import leer_archivo
 from modelo import crear_modelo_lineal
 from modelo import separacion_entrenamiento_test
@@ -51,6 +50,7 @@ def pantalla_principal(ventana):
 
     # Asegurar que el contenido se expanda al ancho de la ventana
     def resize_canvas(event):
+        # usamos el id "all" tal como estaba; funciona en la mayoría de casos
         canvas.itemconfig("all", width=event.width)
     canvas.bind("<Configure>", resize_canvas)
 
@@ -104,17 +104,7 @@ def pantalla_principal(ventana):
     frame_salida = tk.Frame(frame_inferior)
     frame_salida.pack(side="left", padx=40, anchor="n")
 
-    # FRAME PARA DETECCION DE DATOS INEXISTENTES
-    frame_deteccion = tk.LabelFrame(
-        content_frame, text='Detección de valores inexistentes', padx=10, pady=10)
-    frame_deteccion.pack(fill="x", padx=10, pady=10)
-
-    boton_detectar = tk.Button(
-        frame_deteccion, text="Detectar valores inexistentes")
-    boton_detectar.pack(side="left", padx=10)
-
-    etiqueta_resultado = tk.Label(frame_deteccion, text="", justify="left")
-    etiqueta_resultado.pack(side="left", padx=10)
+    # ELIMINADO COMPLETAMENTE: Frame para DETECCION DE DATOS INEXISTENTES
 
     # FRAME PARA MANEJO DE ERRORES:
     frame_manejo = tk.LabelFrame(
@@ -216,8 +206,6 @@ def pantalla_principal(ventana):
                     "Archivo vacío", "El archivo no contiene datos o no fue posible cargarlos.")
                 return
 
-            boton_detectar.config(
-                command=lambda d=datos: detectar_val_inexistentes(d))
             boton_aplicar.config(
                 command=lambda d=datos: aplicar_preprocesado(d))
 
@@ -234,7 +222,7 @@ def pantalla_principal(ventana):
 
             tabla.pack(fill="both", expand=True)
 
-            #Barra lateral
+            # Barra lateral
             vsb = ttk.Scrollbar(
                 frame_tabla, orient="vertical", command=tabla.yview)
             hsb = ttk.Scrollbar(
@@ -282,6 +270,7 @@ def pantalla_principal(ventana):
             if nulos_columna.empty:
                 messagebox.showinfo("Comprobación completada",
                                     "No se detectaron valores inexistentes.")
+                mostrar_panel_separacion()
             else:
                 total_nulos = int(nulos_columna.sum())
                 texto = f"Se detectaron {total_nulos} valores inexistentes en {len(nulos_columna)} columnas:\n"
@@ -290,8 +279,6 @@ def pantalla_principal(ventana):
                 messagebox.showwarning(
                     "Valores inexistentes detectados", texto)
                 frame_manejo.pack(fill="x", padx=10, pady=10)
-
-            mostrar_panel_separacion()
 
         except Exception as e:
             messagebox.showerror(
@@ -357,26 +344,20 @@ def pantalla_principal(ventana):
         entry_train.insert(0, "0.8")
         entry_train.grid(row=0, column=1, padx=5, pady=5)
 
-        tk.Label(frame_modelo, text="Porcentaje de test (0 - 1):").grid(row=1,
-                                                                        column=0, sticky="w", padx=5, pady=5)
-        entry_test = tk.Entry(frame_modelo, width=10)
-        entry_test.insert(0, "0.2")
-        entry_test.grid(row=1, column=1, padx=5, pady=5)
-
         tk.Label(frame_modelo, text="Semilla (random_state):").grid(
-            row=2, column=0, sticky="w", padx=5, pady=5)
+            row=1, column=0, sticky="w", padx=5, pady=5)
         entry_seed = tk.Entry(frame_modelo, width=10)
         entry_seed.insert(0, "42")
-        entry_seed.grid(row=2, column=1, padx=5, pady=5)
+        entry_seed.grid(row=1, column=1, padx=5, pady=5)
 
         boton_aplicar_sep = tk.Button(
             frame_modelo,
             text="Aplicar separación",
             bg="#d0f0c0",
             command=lambda: ejecutar_separacion(
-                entry_train.get(), entry_test.get(), entry_seed.get())
+                entry_train.get(), entry_seed.get())
         )
-        boton_aplicar_sep.grid(row=3, column=0, columnspan=2, pady=10)
+        boton_aplicar_sep.grid(row=2, column=0, columnspan=2, pady=10)
 
         boton_modelo = tk.Button(
             frame_modelo,
@@ -384,13 +365,14 @@ def pantalla_principal(ventana):
             bg="#90EE90",
             command=lambda: crear_modelo_lineal_gui()
         )
-        boton_modelo.grid(row=4, column=0, columnspan=2, pady=10)
+        boton_modelo.grid(row=3, column=0, columnspan=2, pady=10)
 
-    def ejecutar_separacion(train_size, test_size, random_state):
-        """Ejecuta la separación de datos con los valores introducidos"""
+    def ejecutar_separacion(train_size, random_state):
+        """Ejecuta la separación de datos con los valores introducidos.
+        Ahora solo se solicita train_size; test_size se calcula como 1 - train_size."""
         try:
             train_size = float(train_size)
-            test_size = float(test_size)
+            test_size = 1.0 - train_size
             random_state = int(random_state)
 
             if datos is None or len(datos) < 5:
@@ -399,10 +381,12 @@ def pantalla_principal(ventana):
                     f"No hay suficientes datos para realizar la separación \n"
                     f"Actualmente hay {len(datos) if datos is not None else 0} filas, y se necesitan al menos 5."
                 )
+                return
 
-            if abs((train_size + test_size) - 1.0) > 0.0001:
+            if not (0.0 < train_size < 1.0):
                 messagebox.showwarning(
-                    "Advertencia", "Los porcentajes de entrenamiento y test deberían sumar aproximadamente 1.0")
+                    "Valor incorrecto", "El porcentaje de entrenamiento debe estar entre 0 y 1 (exclusivo).")
+                return
 
             columnas_entrada = seleccion_entrada.get("columnas", [])
             columna_salida = seleccion_salida["columna"]
@@ -701,6 +685,11 @@ def pantalla_principal(ventana):
         entradas = seleccion_entrada.get("columnas", [])
         salida = seleccion_salida["columna"]
 
+        if datos is None:
+            messagebox.showwarning(
+                "Sin datos", "Primero carga un archivo con datos.")
+            return
+
         if not entradas or not salida:
             messagebox.showwarning(
                 "Advertencia",
@@ -712,6 +701,8 @@ def pantalla_principal(ventana):
             "Selección confirmada",
             f"Entradas seleccionadas: {', '.join(entradas)}\nSalida seleccionada: {salida}"
         )
+
+        detectar_val_inexistentes(datos)
 
     boton_explorar.config(command=explorar_archivo)
     combo_salida.bind("<<ComboboxSelected>>", seleccionar_salida)
