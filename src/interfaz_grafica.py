@@ -48,9 +48,8 @@ def pantalla_principal(ventana):
     )
     canvas.create_window((0, 0), window=content_frame, anchor="nw")
 
-    # Asegurar que el contenido se expanda al ancho de la ventana
+    # PARA MIRAR QUE EL CONTENIDO SE AJUSTE AL ANCHO DE LA PANTALLA
     def resize_canvas(event):
-        # usamos el id "all" tal como estaba; funciona en la mayoría de casos
         canvas.itemconfig("all", width=event.width)
     canvas.bind("<Configure>", resize_canvas)
 
@@ -93,28 +92,40 @@ def pantalla_principal(ventana):
         frame_tabla, text="📄 Carga un archivo para ver los datos", fg="gray")
     placeholder.pack(pady=20)
 
-    # FRAME PARA LOS SELECTORES DE COLUMNAS DE ENTRADA
-    frame_inferior = tk.Frame(content_frame)
-    frame_inferior.pack(fill="x", padx=10, pady=10)
+    # FRAME PRINCIPAL PARA SELECTORES Y PREPROCESADO
+    frame_principal_inferior = tk.Frame(content_frame)
+    frame_principal_inferior.pack(fill="x", padx=10, pady=10)
 
-    frame_entrada = tk.Frame(frame_inferior)
+    # Configuración del grid
+    frame_principal_inferior.columnconfigure(0, weight=1)  # Selectores
+    frame_principal_inferior.columnconfigure(1, weight=0)  # Espacio
+    frame_principal_inferior.columnconfigure(2, weight=1)  # Preprocesado
+
+    # FRAME PARA LOS SELECTORES DE COLUMNAS
+    frame_selectores = tk.Frame(frame_principal_inferior)
+    frame_selectores.grid(row=0, column=0, sticky="nsew", padx=(0, 20))
+
+    # Sub-frame para entradas y salidas dentro de frame_selectores
+    frame_entrada_salida = tk.Frame(frame_selectores)
+    frame_entrada_salida.pack(fill="x", pady=5)
+
+    frame_entrada = tk.Frame(frame_entrada_salida)
     frame_entrada.pack(side="left", padx=20, anchor="n")
 
-    # FRAME PARA LOS SELECTORES DE COLUMNAS DE SALIDA
-    frame_salida = tk.Frame(frame_inferior)
+    frame_salida = tk.Frame(frame_entrada_salida)
     frame_salida.pack(side="left", padx=40, anchor="n")
 
-    # ELIMINADO COMPLETAMENTE: Frame para DETECCION DE DATOS INEXISTENTES
-
-    # FRAME PARA MANEJO DE ERRORES:
     frame_manejo = tk.LabelFrame(
-        content_frame, text='Manejo de valores inexistentes', padx=10, pady=10)
+        frame_principal_inferior, 
+        text='Manejo de valores inexistentes', 
+        padx=10, 
+        pady=10
+    )
 
     # Variables
     salida_var = tk.StringVar()
     opcion_var = tk.StringVar(value="Eliminar")
 
-    # OPCIONES QUE SE PROPORCIONAN AL USUARIO:
     rb_eliminar = tk.Radiobutton(
         frame_manejo, text='Eliminar filas con valores inexistentes', variable=opcion_var, value="Eliminar")
     rb_media = tk.Radiobutton(
@@ -129,11 +140,9 @@ def pantalla_principal(ventana):
     rb_mediana.pack(anchor="w")
     rb_constante.pack(anchor="w")
 
-    # Pedir constante al usuario
     cte = tk.Entry(frame_manejo, width=10)
     cte.pack(anchor="w", padx=20)
 
-    # Botón para aplicar preprocesado:
     boton_aplicar = tk.Button(
         frame_manejo, text="Aplicar preprocesado", bg="#d0f0c0")
     boton_aplicar.pack(pady=5)
@@ -278,7 +287,7 @@ def pantalla_principal(ventana):
                     texto += f"• {col}: {cantidad} valores faltantes\n"
                 messagebox.showwarning(
                     "Valores inexistentes detectados", texto)
-                frame_manejo.pack(fill="x", padx=10, pady=10)
+                frame_manejo.grid(row=0, column=2, sticky="nsew", padx=(20, 0))
 
         except Exception as e:
             messagebox.showerror(
@@ -323,6 +332,7 @@ def pantalla_principal(ventana):
 
             messagebox.showinfo(
                 "Éxito", "Preprocesado aplicado correctamente.")
+            frame_manejo.grid_forget()
             mostrar_panel_separacion()
 
         except Exception as e:
