@@ -1,10 +1,13 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
+
 
 from lector import leer_archivo
 from modelo import crear_modelo_lineal
-
+from modelo import separacion_entrenamiento_test
 
 import joblib
 from typing import List, Dict, Any
@@ -469,17 +472,25 @@ def pantalla_principal(ventana):
 
             if len(columnas_entrada) == 1:
                 col = columnas_entrada[0]
-                plt.figure(figsize=(7, 5))
-                plt.scatter(X_train[col], y_train,
-                            color="blue", label="Entrenamiento")
-                plt.scatter(X_test[col], y_test, color="orange", label="Test")
-                plt.plot(X_train[col], resultados["y_train_pred"],
-                         color="green", label="Recta de ajuste")
-                plt.xlabel(col)
-                plt.ylabel(columna_salida)
-                plt.title("Regresión lineal: entrenamiento vs test")
-                plt.legend()
-                plt.show()
+                fig = Figure(figsize=(6,4))
+                ax = fig.add_subplot(111)
+
+                ax.scatter(X_train[col], y_train, label="Entrenamiento")
+                ax.scatter(X_test[col], y_test, label="Test")
+                ax.plot(X_train[col], resultados["y_train_pred"], label="Recta de ajuste")
+                ax.set_xlabel(col)
+                ax.set_ylabel(columna_salida)
+                ax.set_title("Regresión lineal: entrenamiento vs test")
+                ax.legend()
+
+                frame_grafico = tk.LabelFrame(content_frame, text="Gráfico de modelo", padx=10, pady=10)
+                frame_grafico.pack(fill="both", expand=True, padx=10, pady=10)
+
+                canvas_fig = FigureCanvasTkAgg(fig, frame_grafico)
+                canvas_fig.draw()
+                canvas_fig.get_tk_widget().pack(fill="both", expand=True)
+
+
             else:
                 messagebox.showinfo(
                     "Gráfico no disponible", "El gráfico solo se genera si hay una variable de entrada numérica.")
