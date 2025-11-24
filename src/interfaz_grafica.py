@@ -17,6 +17,19 @@ def limpiar_ventana(ventana):
     for widget in ventana.winfo_children():
         widget.destroy()
 
+def indicador_de_carga(texto="Procesando..."):
+    ventana_carga = tk.Toplevel()
+    ventana_carga.title("Cargando")
+    ventana_carga.geometry("300x90")
+    ventana_carga.resizable(False, False)
+
+    tk.Label(ventana_carga, text=texto, font=("Arial", 12)).pack(pady=5)
+    pb = ttk.Progressbar(ventana_carga, mode="indeterminate")
+    pb.pack(fill="x", padx=20, pady=10)
+    pb.start()
+
+    return ventana_carga
+
 
 def pantalla_principal(ventana):
     """Función principal para ejecutar la interfaz gráfica."""
@@ -47,6 +60,14 @@ def pantalla_principal(ventana):
         lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
     )
     canvas.create_window((0, 0), window=content_frame, anchor="nw")
+
+    mensaje_bienvenida = tk.Label(
+        content_frame, 
+        text="👋 Bienvenido.\nPara comenzar, cargue un archivo con el botón 'ABRIR ARCHIVO'.", 
+        font=("Arial", 14), 
+        fg="gray"
+    )
+    mensaje_bienvenida.pack(pady=20)
 
     # PARA MIRAR QUE EL CONTENIDO SE AJUSTE AL ANCHO DE LA PANTALLA
     def resize_canvas(event):
@@ -196,13 +217,19 @@ def pantalla_principal(ventana):
 
         if ruta:
             ruta_var.set(ruta)
-            mostrar_datos(ruta)
+            ventana_carga = indicador_de_carga("Cargando archivo...")
+            ventana.after(100, lambda: (mostrar_datos(ruta), ventana_carga.destroy()))
         else:
             ruta_var.set("Ningún archivo seleccionado")
 
     def mostrar_datos(ruta):
         """Muestra la tabla con los datos del dataframe que haya seleccionado
         el usuario."""
+        try:
+            mensaje_bienvenida.destroy()
+        except:
+            pass
+
         for widget in frame_tabla.winfo_children():
             widget.destroy()
 
@@ -362,7 +389,7 @@ def pantalla_principal(ventana):
 
         boton_aplicar_sep = tk.Button(
             frame_modelo,
-            text="Aplicar separación",
+            text="📊 Aplicar división entrenamiento/test",
             bg="#d0f0c0",
             command=lambda: ejecutar_separacion(
                 entry_train.get(), entry_seed.get())
@@ -415,7 +442,7 @@ def pantalla_principal(ventana):
             )
 
             messagebox.showinfo(
-                "Separación completada",
+                "División realizada",
                 f"Entrenamiento: {len(X_train)} filas\nPrueba: {len(X_test)} filas"
             )
 
@@ -430,6 +457,8 @@ def pantalla_principal(ventana):
         También muestra la fórmula y los datos de entrenamiento, así como una gráfica cuando el usuario sólo
         ha seleccionado una entrada."""
         try:
+            ventana_carga = indicador_de_carga("Creando modelo...")
+            ventana.update()
 
             columnas_entrada = seleccion_entrada.get("columnas", [])
             columna_salida = seleccion_salida["columna"]
@@ -483,6 +512,8 @@ def pantalla_principal(ventana):
                 canvas_fig = FigureCanvasTkAgg(fig, frame_grafico)
                 canvas_fig.draw()
                 canvas_fig.get_tk_widget().pack(fill="both", expand=True)
+
+                ventana_carga.destroy()
 
 
             else:
@@ -597,7 +628,7 @@ def pantalla_principal(ventana):
             joblib.dump(datos_para_guardar, pedir_usuario)
 
             messagebox.showinfo(
-                "Guardado exitoso",
+                "Modelo guardado",
                 f"El modelo y sus metadatos han sido guardados correctamente en:\n{pedir_usuario}")
 
         except Exception as e:
