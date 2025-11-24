@@ -5,8 +5,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
 from lector import leer_archivo
-from modelo import crear_modelo_lineal
-from modelo import separacion_entrenamiento_test, configurar_panel_prediccion
+
 
 
 import joblib
@@ -18,20 +17,6 @@ from modelo import *
 def limpiar_ventana(ventana):
     for widget in ventana.winfo_children():
         widget.destroy()
-
-def indicador_de_carga(texto="Procesando..."):
-    ventana_carga = tk.Toplevel()
-    ventana_carga.title("Cargando")
-    ventana_carga.geometry("300x90")
-    ventana_carga.resizable(False, False)
-
-    tk.Label(ventana_carga, text=texto, font=("Arial", 12)).pack(pady=5)
-    pb = ttk.Progressbar(ventana_carga, mode="indeterminate")
-    pb.pack(fill="x", padx=20, pady=10)
-    pb.start()
-
-    return ventana_carga
-
 
 def pantalla_principal(ventana):
     """Función principal para ejecutar la interfaz gráfica."""
@@ -402,7 +387,7 @@ def pantalla_principal(ventana):
             frame_modelo,
             text="Crear modelo lineal",
             bg="#90EE90",
-            command=lambda: crear_modelo_lineal_gui()
+            command=lambda: crear_modelo_lineal_gui(ventana, seleccion_entrada, seleccion_salida, datos, content_frame, frame_modelo)
         )
         boton_modelo.grid(row=3, column=0, columnspan=2, pady=10)
 
@@ -451,131 +436,8 @@ def pantalla_principal(ventana):
         except Exception as e:
             messagebox.showerror(
                 "Error", f"Ocurrió un error al separar los datos:\n{e}")
+            
 
-    # ---CREACIÓN Y GUARDADO DEL MODELO---
-
-    def crear_modelo_lineal_gui():
-        """Crea el modelo lineal con las entradas y la salida que el usuario ha seleccionado anteriormente.
-        También muestra la fórmula y los datos de entrenamiento, así como una gráfica cuando el usuario sólo
-        ha seleccionado una entrada."""
-        try:
-            ventana_carga = indicador_de_carga("Creando modelo...")
-            ventana.update()
-
-            columnas_entrada = seleccion_entrada.get("columnas", [])
-            columna_salida = seleccion_salida["columna"]
-
-            if not columnas_entrada or not columna_salida:
-                messagebox.showwarning(
-                    "Faltan columnas", "Selecciona columnas de entrada y salida antes de continuar")
-                return
-
-            if datos is None or len(datos) < 5:
-                messagebox.showwarning(
-                    "Sin datos", "Primero carga y prepara los datos.")
-                return
-
-            X_train, X_test, y_train, y_test = separacion_entrenamiento_test(
-                datos, columnas_entrada, columna_salida, porcentaje_test=0.2, random_state=42
-            )
-
-            resultados = crear_modelo_lineal(
-                X_train, X_test, y_train, y_test, columnas_entrada)
-
-            texto = (
-                f"Modelo lineal creado correctamente\n\n"
-                f"Fórmula:\n{columna_salida} = {resultados['formula']}\n\n"
-                f"Entrenamiento:\n"
-                f"  R² = {resultados['r2_train']:.4f}\n"
-                f"  ECM = {resultados['ecm_train']:.4f}\n\n"
-                f"Test:\n"
-                f"  R² = {resultados['r2_test']:.4f}\n"
-                f"  ECM = {resultados['ecm_test']:.4f}"
-            )
-
-            messagebox.showinfo("Modelo creado", texto)
-            modelo_objeto = resultados['modelo']
-            configurar_panel_prediccion(content_frame, modelo_objeto, columnas_entrada, columna_salida)
-
-            if len(columnas_entrada) == 1:
-                col = columnas_entrada[0]
-                fig = Figure(figsize=(6,4))
-                ax = fig.add_subplot(111)
-
-                ax.scatter(X_train[col], y_train, label="Entrenamiento")
-                ax.scatter(X_test[col], y_test, label="Test")
-                ax.plot(X_train[col], resultados["y_train_pred"], label="Recta de ajuste")
-                ax.set_xlabel(col)
-                ax.set_ylabel(columna_salida)
-                ax.set_title("Regresión lineal: entrenamiento vs test")
-                ax.legend()
-
-                frame_grafico = tk.LabelFrame(content_frame, text="Gráfico de modelo", padx=10, pady=10)
-                frame_grafico.pack(fill="both", expand=True, padx=10, pady=10)
-
-                canvas_fig = FigureCanvasTkAgg(fig, frame_grafico)
-                canvas_fig.draw()
-                canvas_fig.get_tk_widget().pack(fill="both", expand=True)
-
-                ventana_carga.destroy()
-
-
-            else:
-                messagebox.showinfo(
-                    "Gráfico no disponible", "El gráfico solo se genera si hay una variable de entrada numérica.")
-
-            frame_descripcion = tk.LabelFrame(
-                content_frame, text="Descripción y Guardado del Modelo", padx=10, pady=10)
-            frame_descripcion.pack(
-                fill="x", padx=10, pady=10, after=frame_modelo)
-
-            tk.Label(frame_descripcion, text="Escribe una descripción para este modelo (opcional):").pack(
-                anchor="w")
-
-            texto_descripcion = tk.Text(
-                frame_descripcion, width=100, height=6, wrap="word")
-            texto_descripcion.pack(pady=5, fill="x", expand=True)
-
-            def preparar_y_guardar_modelo():
-                """Obtiene los datos del modelo e implementa un botón en la interfaz que le permita
-                al usuario guardar dicho modelo."""
-                descripcion = texto_descripcion.get("1.0", tk.END).strip()
-
-                # Obtener el objeto del modelo desde los resultados
-                modelo_obj = resultados.get('modelo')
-                if not isinstance(modelo_obj, LinearRegression):
-                    messagebox.showerror(
-                        "Error", "No se encontró un objeto de modelo válido para guardar.")
-                    return
-
-                metricas = {
-                    'r2_train': resultados.get('r2_train'),
-                    'r2_test': resultados.get('r2_test'),
-                    'ecm_train': resultados.get('ecm_train'),
-                    'ecm_test': resultados.get('ecm_test')
-                }
-
-                guardar_modelo(
-                    modelo=modelo_obj,
-                    columnas_entrada=columnas_entrada, 
-                    columna_salida=columna_salida, 
-                    metricas=metricas,
-                    descripcion=descripcion)
-
-            boton_guardar_modelo = tk.Button(
-                frame_descripcion,
-                text="💾 Guardar Modelo",
-                font=("Arial", 10, "bold"),
-                bg="#c0f0ff",
-                command=preparar_y_guardar_modelo)
-            boton_guardar_modelo.pack(pady=10)
-
-        except Exception as e:
-            messagebox.showerror("Error al crear modelo", str(e))
-
-
-
-    
     def cargar_modelo():
         """Implementa el método para cargar un modelo que el usuario ha guardado anteriormente."""
         ruta = filedialog.askopenfilename(
@@ -668,7 +530,7 @@ def pantalla_principal(ventana):
         messagebox.showinfo(
             "Cargar modelo",
             f"El modelo ha sido cargado exitosamente."
-        )
+            )    
 
     def seleccionar_entrada():
         """Guarda la(s) entrada(s) seleccionada por el usuario."""
