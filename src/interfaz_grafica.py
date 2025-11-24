@@ -288,17 +288,22 @@ def pantalla_principal(ventana):
             messagebox.showwarning(
                 "Sin datos", "Debes cargar un archivo con datos.")
             return
+        
         try:
-            seleccion = listbox_entrada.curselection()
-            seleccion_entrada_local = [
-                listbox_entrada.get(var) for var in seleccion]
+            seleccion_entrada_local =  seleccion_entrada.get("columnas", [])
+            columna_salida_local = seleccion_salida.get("columna", None)
 
-            if not seleccion_entrada_local:
+
+            if not seleccion_entrada_local or not columna_salida_local:
                 messagebox.showinfo(
-                    "Error", "Debes seleccionar al menos una columna")
+                    "Error", "Debes seleccionar al menos una columna de entrada y columna de salida")
                 return
 
-            datos_f = datos_param[seleccion_entrada_local]
+            columnas_a_comprobar = seleccion_entrada_local + [columna_salida_local]
+            columnas_a_comprobar = list(set(columnas_a_comprobar))
+
+
+            datos_f = datos_param[columnas_a_comprobar]
             nulos_columna = datos_f.isna().sum()
             nulos_columna = nulos_columna[nulos_columna > 0]
 
@@ -329,9 +334,15 @@ def pantalla_principal(ventana):
             return
 
         opcion = opcion_var.get()
+
+        columnas_entrada_local = seleccion_entrada.get("columnas", [])
+        columna_salida_local = seleccion_salida.get("columnas", None)
+        columnas_interes = columnas_entrada_local + ([columna_salida_local] if columna_salida_local else [])
+        columnas_interes = list(set(columnas_interes))
+
         try:
             if opcion == "Eliminar":
-                datos_param.dropna(inplace=True)
+                datos_param.dropna(subset=columnas_interes, inplace=True)
             elif opcion == "media":
                 datos_param.fillna(datos_param.mean(
                     numeric_only=True), inplace=True)
