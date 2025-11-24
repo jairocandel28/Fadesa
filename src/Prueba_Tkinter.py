@@ -3,8 +3,12 @@ from tkinter import filedialog, messagebox, ttk
 import matplotlib.pyplot as plt
 
 from lector import *
-from modelo import separacion_entrenamiento_test
-from modelo import crear_modelo_lineal
+from modelo import *
+
+
+import joblib
+from typing import List, Dict, Any
+from sklearn.linear_model import LinearRegression
 
 
 def limpiar_ventana(ventana):
@@ -57,6 +61,9 @@ def pantalla_principal(ventana):
 
     boton_explorar = tk.Button(frame_superior, text="📁 ABRIR ARCHIVO", font=("Arial", 14))
     boton_explorar.pack(side="left", padx=10)
+
+    boton_cargar = tk.Button(frame_superior, text="📁 CARGAR MODELO", font=("Arial", 14))
+    boton_cargar.pack(side="right", padx=10)
 
     ruta_var = tk.StringVar(value="Ningún archivo seleccionado")
 
@@ -373,8 +380,10 @@ def pantalla_principal(ventana):
             messagebox.showerror("Error", f"Ocurrió un error al separar los datos:\n{e}")
 
 
+    # ---CREACIÓN Y GUARDADO DEL MODELO---
     def crear_modelo_lineal_gui():
         try:
+          
             columnas_entrada = seleccion_entrada.get("columnas", [])
             columna_salida = seleccion_salida["columna"]
 
@@ -386,15 +395,12 @@ def pantalla_principal(ventana):
                 messagebox.showwarning("Sin datos", "Primero carga y prepara los datos.")
                 return
             
-            # Dividir en entrenamiento y test
             X_train, X_test, y_train, y_test = separacion_entrenamiento_test(
                 datos, columnas_entrada, columna_salida, porcentaje_test=0.2, random_state=42
             )
 
-            # Crear y evaluar el modelo
             resultados = crear_modelo_lineal(X_train, X_test, y_train, y_test, columnas_entrada)
 
-            # Mostrar métricas y fórmula
             texto = (
                 f"Modelo lineal creado correctamente\n\n"
                 f"Fórmula:\n{columna_salida} = {resultados['formula']}\n\n"
@@ -408,7 +414,6 @@ def pantalla_principal(ventana):
 
             messagebox.showinfo("Modelo creado", texto)
 
-            # Mostrar gráfico si hay una sola variable de entrada
             if len(columnas_entrada) == 1:
                 col = columnas_entrada[0]
                 plt.figure(figsize=(7, 5))
@@ -423,14 +428,53 @@ def pantalla_principal(ventana):
             else:
                 messagebox.showinfo("Gráfico no disponible", "El gráfico solo se genera si hay una variable de entrada numérica.")
 
-            # === panel para descripción del modelo ===
-            mostrar_descripcion_modelo(resultados)
+           
+
+            frame_descripcion = tk.LabelFrame(content_frame, text="Descripción y Guardado del Modelo", padx=10, pady=10)
+            frame_descripcion.pack(fill="x", padx=10, pady=10, after=frame_modelo)
+
+            tk.Label(frame_descripcion, text="Escribe una descripción para este modelo (opcional):").pack(anchor="w")
+
+            texto_descripcion = tk.Text(frame_descripcion, width=100, height=6, wrap="word")
+            texto_descripcion.pack(pady=5, fill="x", expand=True)
+
+            def preparar_y_guardar_modelo():
+                descripcion = texto_descripcion.get("1.0", tk.END).strip()
+
+                #Obtener el objeto del modelo desde los resultados
+                modelo_obj = resultados.get('modelo')
+                if not isinstance(modelo_obj, LinearRegression):
+                    messagebox.showerror("Error", "No se encontró un objeto de modelo válido para guardar.")
+                    return
+
+                metricas = {
+                    'r2_train': resultados.get('r2_train'),
+                    'r2_test': resultados.get('r2_test'),
+                    'ecm_train': resultados.get('ecm_train'),
+                    'ecm_test': resultados.get('ecm_test')
+                }
+
+                # Llamar a la función de guardado global
+                guardar_modelo(
+                    modelo=modelo_obj,
+                    columnas_entrada=columnas_entrada, # Ya las tenemos de esta función
+                    columna_salida=columna_salida,   # Ya la tenemos de esta función
+                    metricas=metricas,
+                    descripcion=descripcion)
+            
+
+            boton_guardar_modelo = tk.Button(
+                frame_descripcion, 
+                text="💾 Guardar Modelo", 
+                font=("Arial", 10, "bold"),
+                bg="#c0f0ff", 
+                command=preparar_y_guardar_modelo)
+            boton_guardar_modelo.pack(pady=10)
 
         except Exception as e:
             messagebox.showerror("Error al crear modelo", str(e))
 
 
-    # === crea el área de texto para descripción del modelo ===
     def mostrar_descripcion_modelo(resultados):
         """Muestra un área de texto donde el usuario puede escribir una descripción del modelo."""
         frame_descripcion = tk.LabelFrame(content_frame, text="Descripción del modelo", padx=10, pady=10)
@@ -438,16 +482,13 @@ def pantalla_principal(ventana):
 
         tk.Label(frame_descripcion, text="Escribe una descripción para este modelo:").pack(anchor="w")
 
-        # Área de texto grande
         texto_descripcion = tk.Text(frame_descripcion, width=100, height=6, wrap="word")
         texto_descripcion.pack(pady=5)
 
-        # Función para guardar la descripción
         def guardar_descripcion():
             descripcion = texto_descripcion.get("1.0", tk.END).strip()
             if descripcion == "":
                 messagebox.showwarning("Descripción vacía", "No se ha escrito ninguna descripción (se guardará como vacía).")
-            # Guardar descripción junto al modelo
             try:
                 with open("descripcion_modelo.txt", "w", encoding="utf-8") as f:
                     f.write("=== Descripción del modelo ===\n\n")
@@ -457,9 +498,117 @@ def pantalla_principal(ventana):
             except Exception as e:
                 messagebox.showerror("Error", f"No se pudo guardar la descripción:\n{e}")
 
-        # Botón para guardar descripción
         boton_guardar_desc = tk.Button(frame_descripcion, text="💾 Guardar descripción", bg="#c0f0ff", command=guardar_descripcion)
-        boton_guardar_desc.pack(pady=5)
+        boton_guardar_desc.pack(pady=5) 
+
+    def guardar_modelo(modelo,columnas_entrada,columna_salida,metricas,descripcion):
+        try:
+            #Guardar como, proporcionado al usuario:
+            pedir_usuario = filedialog.asksaveasfilename(
+                title="Guardar modelo",
+                defaultextension=".joblib",
+                filetypes=[
+                    ("Archivos Joblib", "*.joblib"),
+                    ("Archivos Pickle", "*.pkl"),
+                    ("Todos los archivos", "*.*")])
+
+            if not pedir_usuario:
+                return 
+            datos_para_guardar = {
+                'modelo_objeto': modelo,
+                'columnas_entrada': columnas_entrada,
+                'columna_salida': columna_salida,
+                'metricas': metricas,
+                'descripcion': descripcion,
+                'formula': f"{modelo.intercept_:.4f} + " + " + ".join([f"{coef:.4f} * {col}" for coef, col in zip(modelo.coef_, columnas_entrada)])}
+
+            #Guardar el archivo
+            joblib.dump(datos_para_guardar, pedir_usuario)
+
+            #Mensaje para confirmar
+            messagebox.showinfo(
+                "Guardado exitoso",
+                f"El modelo y sus metadatos han sido guardados correctamente en:\n{pedir_usuario}")
+
+        except Exception as e:
+            messagebox.showerror(
+                "Error al guardar",
+                f"Ocurrió un problema al intentar guardar el modelo:\n{e}\n\n"
+                "Por favor, verifica los permisos de escritura o el espacio en disco.")
+
+
+    def cargar_modelo():
+        ruta = filedialog.askopenfilename(
+            title="Selecciona un archivo",
+            filetypes=(
+                ("Archivos Joblib", "*.joblib"),
+                ("Archivos Pickle", "*.pkl"),
+                ("Todos los archivos", "*.*"),
+            )
+        )
+
+        if not ruta:
+            ruta_var.set("Ningún archivo seleccionado")
+            return
+
+        try:
+            modelo_cargado = joblib.load(ruta)
+
+            if not isinstance(modelo_cargado, dict):
+                raise ValueError("El archivo no contiene un diccionario válido.")
+
+        except Exception as e:
+            messagebox.showerror(
+                "Error al cargar archivo",
+                "No se pudo cargar el archivo seleccionado."
+            )
+            return
+
+        limpiar_ventana(ventana)
+            
+        main_frame = tk.Frame(ventana)
+        main_frame.pack(fill="both", expand=True)
+
+        canvas = tk.Canvas(main_frame)
+        canvas.pack(side="left", fill="both", expand=True)
+
+        content_frame = tk.Frame(canvas)
+        canvas.create_window((0, 0), window=content_frame, anchor="nw")
+
+        frame_superior = tk.Frame(content_frame)
+        frame_superior.pack(fill="x", pady=10, padx=10)
+
+        modelo_cargado = joblib.load(ruta)  # Diccionario
+
+        información = (
+            f"Modelo: {modelo_cargado['modelo_objeto']}\n\n"
+            f"Columnas de entrada: {modelo_cargado['columnas_entrada']}\n\n"
+            f"Columna de salida: {modelo_cargado['columna_salida']}\n\n"
+            f"Métricas:\n"
+            f"  - R2 Train: {modelo_cargado['metricas']['r2_train']}\n"
+            f"  - R2 Test: {modelo_cargado['metricas']['r2_test']}\n"
+            f"  - ECM Train: {modelo_cargado['metricas']['ecm_train']}\n"
+            f"  - ECM Test: {modelo_cargado['metricas']['ecm_test']}\n\n"
+            f"Descripción:\n"
+            f"{modelo_cargado['descripcion']}\n\n"
+            f"Fórmula: {modelo_cargado['formula']}\n"
+        )
+
+        label = tk.Label(frame_superior, text = información, font=("Arial", 14))
+        label.pack(padx = 10, pady=10)
+
+
+        boton_regresar = tk.Button(frame_superior, text="⬅️ VOLVER A LA PANTALLA DE INICIO", font=("Arial", 14))
+        boton_regresar.pack(side="bottom", padx=10)
+
+        boton_regresar.config(command=lambda: pantalla_principal(ventana))
+
+
+        messagebox.showinfo(
+            "Cargar modelo",
+            f"El modelo ha sido cargado exitosamente"
+        )
+        
 
 
 
@@ -486,8 +635,9 @@ def pantalla_principal(ventana):
             "Selección confirmada",
             f"Entradas seleccionadas: {', '.join(entradas)}\nSalida seleccionada: {salida}"
         )
+        
 
-    # Asociaciones
     boton_explorar.config(command=explorar_archivo)
     combo_salida.bind("<<ComboboxSelected>>", seleccionar_salida)
     boton_confirmar.config(command=confirmar_seleccion)
+    boton_cargar.config(command=cargar_modelo)
