@@ -1,22 +1,27 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.figure import Figure
-
 from lector import leer_archivo
-
-
-
 import joblib
-from typing import List, Dict, Any
-from sklearn.linear_model import LinearRegression
-from modelo import *
+from modelo import crear_modelo_lineal_gui, configurar_panel_prediccion, separacion_entrenamiento_test
 
 
 def limpiar_ventana(ventana):
     for widget in ventana.winfo_children():
         widget.destroy()
+
+def indicador_de_carga(texto="Procesando..."):
+    ventana_carga = tk.Toplevel()
+    ventana_carga.title("Cargando")
+    ventana_carga.geometry("300x90")
+    ventana_carga.resizable(False, False)
+
+    tk.Label(ventana_carga, text=texto, font=("Arial", 12)).pack(pady=5)
+    pb = ttk.Progressbar(ventana_carga, mode="indeterminate")
+    pb.pack(fill="x", padx=20, pady=10)
+    pb.start()
+
+    return ventana_carga
+
 
 def pantalla_principal(ventana):
     """Función principal para ejecutar la interfaz gráfica."""
@@ -49,9 +54,10 @@ def pantalla_principal(ventana):
     canvas.create_window((0, 0), window=content_frame, anchor="nw")
 
     mensaje_bienvenida = tk.Label(
-        content_frame, 
-        text="👋 Bienvenido.\nPara comenzar, cargue un archivo con el botón 'ABRIR ARCHIVO'.", 
-        font=("Arial", 14), 
+        content_frame,
+        text="👋 Bienvenido.\nPara comenzar, cargue un archivo con el " \
+        "botón 'ABRIR ARCHIVO'.",
+        font=("Arial", 14),
         fg="gray"
     )
     mensaje_bienvenida.pack(pady=20)
@@ -95,7 +101,7 @@ def pantalla_principal(ventana):
     frame_tabla = tk.Frame(content_frame, bd=2, relief="groove", height=200)
     frame_tabla.pack(fill="both", expand=True, padx=10, pady=10)
 
-    #mostrar el marco incluso antes de cargar archivo
+    # mostrar el marco incluso antes de cargar archivo
     placeholder = tk.Label(
         frame_tabla, text="📄 Carga un archivo para ver los datos", fg="gray")
     placeholder.pack(pady=20)
@@ -124,9 +130,9 @@ def pantalla_principal(ventana):
     frame_salida.pack(side="left", padx=40, anchor="n")
 
     frame_manejo = tk.LabelFrame(
-        frame_principal_inferior, 
-        text='Manejo de valores inexistentes', 
-        padx=10, 
+        frame_principal_inferior,
+        text='Manejo de valores inexistentes',
+        padx=10,
         pady=10
     )
 
@@ -135,13 +141,17 @@ def pantalla_principal(ventana):
     opcion_var = tk.StringVar(value="Eliminar")
 
     rb_eliminar = tk.Radiobutton(
-        frame_manejo, text='Eliminar filas con valores inexistentes', variable=opcion_var, value="Eliminar")
+        frame_manejo, text='Eliminar filas con valores inexistentes', 
+        variable=opcion_var, value="Eliminar")
     rb_media = tk.Radiobutton(
-        frame_manejo, text='Rellenar con media', variable=opcion_var, value="media")
+        frame_manejo, text='Rellenar con media', variable=opcion_var, 
+        value="media")
     rb_mediana = tk.Radiobutton(
-        frame_manejo, text='Rellenar con mediana', variable=opcion_var, value="mediana")
+        frame_manejo, text='Rellenar con mediana', variable=opcion_var, 
+        value="mediana")
     rb_constante = tk.Radiobutton(
-        frame_manejo, text='Rellenar con constante', variable=opcion_var, value="constante")
+        frame_manejo, text='Rellenar con constante', variable=opcion_var, 
+        value="constante")
 
     rb_eliminar.pack(anchor="w")
     rb_media.pack(anchor="w")
@@ -161,7 +171,8 @@ def pantalla_principal(ventana):
     etiqueta_entrada.pack(anchor="w")
 
     listbox_entrada = tk.Listbox(
-        frame_entrada, selectmode='multiple', exportselection=False, height=6, width=30)
+        frame_entrada, selectmode='multiple', exportselection=False, 
+        height=6, width=30)
     listbox_entrada.pack(pady=5)
 
     # Salida
@@ -205,7 +216,8 @@ def pantalla_principal(ventana):
         if ruta:
             ruta_var.set(ruta)
             ventana_carga = indicador_de_carga("Cargando archivo...")
-            ventana.after(100, lambda: (mostrar_datos(ruta), ventana_carga.destroy()))
+            ventana.after(100, lambda: (
+                mostrar_datos(ruta), ventana_carga.destroy()))
         else:
             ruta_var.set("Ningún archivo seleccionado")
 
@@ -387,7 +399,8 @@ def pantalla_principal(ventana):
             frame_modelo,
             text="Crear modelo lineal",
             bg="#90EE90",
-            command=lambda: crear_modelo_lineal_gui(ventana, seleccion_entrada, seleccion_salida, datos, content_frame, frame_modelo)
+            command=lambda: crear_modelo_lineal_gui(
+                ventana, seleccion_entrada, seleccion_salida, datos, content_frame, frame_modelo)
         )
         boton_modelo.grid(row=3, column=0, columnspan=2, pady=10)
 
@@ -436,7 +449,6 @@ def pantalla_principal(ventana):
         except Exception as e:
             messagebox.showerror(
                 "Error", f"Ocurrió un error al separar los datos:\n{e}")
-            
 
     def cargar_modelo():
         """Implementa el método para cargar un modelo que el usuario ha guardado anteriormente."""
@@ -481,7 +493,7 @@ def pantalla_principal(ventana):
         frame_superior = tk.Frame(content_frame)
         frame_superior.pack(fill="x", pady=10, padx=10)
 
-        modelo_cargado = joblib.load(ruta) 
+        modelo_cargado = joblib.load(ruta)
 
         información = (
             f"Modelo: {modelo_cargado['modelo_objeto']}\n\n"
@@ -511,9 +523,9 @@ def pantalla_principal(ventana):
         frame_pred_container.pack(fill="x", padx=10)
 
         configurar_panel_prediccion(
-            frame_pred_container, 
-            modelo_cargado_obj, 
-            cols_entrada_cargadas, 
+            frame_pred_container,
+            modelo_cargado_obj,
+            cols_entrada_cargadas,
             col_salida_cargada
         )
         # --- FIN DE INTEGRACIÓN ---
@@ -530,7 +542,7 @@ def pantalla_principal(ventana):
         messagebox.showinfo(
             "Cargar modelo",
             f"El modelo ha sido cargado exitosamente."
-            )    
+        )
 
     def seleccionar_entrada():
         """Guarda la(s) entrada(s) seleccionada por el usuario."""
