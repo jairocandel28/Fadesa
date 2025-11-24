@@ -212,11 +212,11 @@ def crear_modelo_lineal_gui(ventana, seleccion_entrada, seleccion_salida, datos,
             canvas_fig.draw()
             canvas_fig.get_tk_widget().pack(fill="both", expand=True)
 
-            ventana_carga.destroy()
 
         else:
             messagebox.showinfo(
                 "Gráfico no disponible", "El gráfico solo se genera si hay una variable de entrada numérica.")
+        ventana_carga.destroy()
 
         frame_descripcion = tk.LabelFrame(
             content_frame, text="Descripción y Guardado del Modelo", padx=10, pady=10)
