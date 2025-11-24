@@ -212,10 +212,51 @@ def crear_modelo_lineal_gui(ventana, seleccion_entrada, seleccion_salida, datos,
             canvas_fig.draw()
             canvas_fig.get_tk_widget().pack(fill="both", expand=True)
 
+        # --- Gráfico de dispersión Predicción vs. Real (para el conjunto de test) ---
+        
+        # Crear la figura
+        fig_pred = Figure(figsize=(6, 4))
+        ax_pred = fig_pred.add_subplot(111)
 
-        else:
+        # Scatter plot de valores reales vs. valores predichos
+        ax_pred.scatter(y_test, resultados["y_test_pred"], label="Predicciones Test")
+        
+        # Línea ideal (y=x): Determina el rango de valores para la línea
+        y_test_numpy = y_test.values if isinstance(y_test, pd.Series) else y_test
+        
+        min_val = min(y_test_numpy.min(), resultados["y_test_pred"].min())
+        max_val = max(y_test_numpy.max(), resultados["y_test_pred"].max())
+        line_coords = [min_val, max_val]
+
+        # Dibuja la línea y=x (ideal) en rojo punteado
+        ax_pred.plot(line_coords, line_coords, 'r--', label="Predicción Ideal ($y=x$)", alpha=0.7)
+
+        # Etiquetas y título
+        ax_pred.set_xlabel(f"Valores Reales de {columna_salida}")
+        ax_pred.set_ylabel(f"Predicciones de {columna_salida}")
+        ax_pred.set_title("Predicción vs. Valores Reales (Conjunto de Test)")
+        ax_pred.legend()
+        ax_pred.grid(True, linestyle='--', alpha=0.6)
+
+        # Integrar en Tkinter
+        frame_grafico_pred = tk.LabelFrame(
+            content_frame, 
+            text="Gráfico de Predicción vs. Real (Test)", 
+            padx=10, pady=10)
+        
+        # Empaqueta el nuevo frame de gráfico en el content_frame
+        frame_grafico_pred.pack(fill="both", expand=True, padx=10, pady=10)
+
+        canvas_fig_pred = FigureCanvasTkAgg(fig_pred, frame_grafico_pred)
+        canvas_fig_pred.draw()
+        canvas_fig_pred.get_tk_widget().pack(fill="both", expand=True)
+        
+
+
+        if len(columnas_entrada) != 1:
             messagebox.showinfo(
-                "Gráfico no disponible", "El gráfico solo se genera si hay una variable de entrada numérica.")
+                "Gráfico de regresión no disponible",
+                 "El gráfico de la recta de regresión simple solo se genera si hay una variable de entrada numérica.")
         ventana_carga.destroy()
 
         frame_descripcion = tk.LabelFrame(
