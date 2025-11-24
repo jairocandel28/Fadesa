@@ -386,23 +386,16 @@ def pantalla_principal(ventana):
         entry_seed.insert(0, "42")
         entry_seed.grid(row=1, column=1, padx=5, pady=5)
 
-        boton_aplicar_sep = tk.Button(
-            frame_modelo,
-            text="📊 Aplicar división entrenamiento/test",
-            bg="#d0f0c0",
-            command=lambda: ejecutar_separacion(
-                entry_train.get(), entry_seed.get())
-        )
-        boton_aplicar_sep.grid(row=2, column=0, columnspan=2, pady=10)
-
         boton_modelo = tk.Button(
             frame_modelo,
-            text="Crear modelo lineal",
-            bg="#90EE90",
-            command=lambda: crear_modelo_lineal_gui(
-                ventana, seleccion_entrada, seleccion_salida, datos, content_frame, frame_modelo)
+            text="📊 Crear modelo lineal",
+            bg="#d0f0c0",
+            command=lambda: ejecutar_separacion(
+                entry_train.get(), entry_seed.get(),
+                crear_modelo_lineal_gui(
+                ventana, seleccion_entrada, seleccion_salida, datos, content_frame, frame_modelo))
         )
-        boton_modelo.grid(row=3, column=0, columnspan=2, pady=10)
+        boton_modelo.grid(row=2, column=0, columnspan=2, pady=10)
 
     def ejecutar_separacion(train_size, random_state):
         """Ejecuta la separación de datos con los valores introducidos.
