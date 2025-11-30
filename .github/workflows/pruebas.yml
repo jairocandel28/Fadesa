@@ -35,4 +35,9 @@ jobs:
 
     - name: Ejecutar pruebas con Pytest
       run: |
-        python -m pytest
+        export PYTHONPATH=$PYTHONPATH:./src
+        
+        echo "Archivos encontrados en tests/:"
+        find tests/ -name 'test_*.py'
+        
+        python -m pytest tests/
