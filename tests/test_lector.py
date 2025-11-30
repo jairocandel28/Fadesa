@@ -11,7 +11,6 @@ from src.lector import leer_archivo
 def test_leer_csv_valido(tmp_path):
     """
     Crea un archivo CSV temporal y verifica que se carga correctamente.
-    Usa 'tmp_path' de pytest para no ensuciar tu disco duro.
     """
     carpeta = tmp_path / "datos"
     carpeta.mkdir()
@@ -36,7 +35,7 @@ def test_extension_invalida():
 
 def test_archivo_no_existe():
     """
-    Verifica que no explote el programa si el archivo no existe.
+    Verifica que no se congele el programa si el archivo no existe.
     """
     resultado = leer_archivo("ruta/que/no/existe.csv")
     assert resultado is None
