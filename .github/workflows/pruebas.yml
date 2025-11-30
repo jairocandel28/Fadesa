@@ -35,9 +35,14 @@ jobs:
 
     - name: Ejecutar pruebas con Pytest
       run: |
+        # 1. Diagnóstico: Listar la estructura para confirmar la carpeta 'tests'
+        echo "Contenido del directorio de trabajo (observar mayúsculas/minúsculas):"
+        ls -F
+        
+        # 2. Configuración de PATH para importar módulos de 'src/'
         export PYTHONPATH=$PYTHONPATH:./src
         
-        echo "Archivos encontrados en tests/:"
-        find tests/ -name 'test_*.py'
-        
-        python -m pytest tests/
+        # 3. Ejecución FORZADA de Pytest, probando 'tests/' Y 'Tests/'
+        # Si la primera falla, prueba la segunda.
+        # Esto debería asegurar que encuentre la carpeta.
+        python -m pytest tests/ --durations=5 || python -m pytest Tests/ --durations=5
