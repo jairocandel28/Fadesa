@@ -31,7 +31,7 @@ jobs:
 
     - name: Ejecutar tests con pytest
       env:
-        PYTHONPATH: ./src   # <-- Clave: permite importar los módulos desde tests
+        PYTHONPATH: ./src   
       run: |
         echo "Estructura detectada en GitHub:"
         ls -R .
