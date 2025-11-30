@@ -29,8 +29,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Diagnóstico de estructura
-      run: ls -R .
-
-
-
+    - name: Ejecutar tests con pytest
+      env:
+        PYTHONPATH: ./src   # <-- Clave: permite importar los módulos desde tests
+      run: |
+        echo "Estructura detectada en GitHub:"
+        ls -R .
+        pytest -v --durations=5
