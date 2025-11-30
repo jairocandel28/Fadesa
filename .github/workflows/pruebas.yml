@@ -35,4 +35,6 @@ jobs:
 
     - name: Ejecutar pruebas con Pytest
       run: |
-        python -m pytest tests/
+        export PYTHONPATH=$PYTHONPATH:./src
+        
+        python -m pytest tests/ --import-mode=append
