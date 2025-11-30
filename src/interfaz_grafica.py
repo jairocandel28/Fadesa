@@ -408,7 +408,7 @@ def pantalla_principal(ventana):
         )
         boton_modelo.grid(row=2, column=0, columnspan=2, pady=10)
 
-    def ejecutar_separacion(train_size, random_state):
+    def ejecutar_separacion(train_size, random_state, crear_modelo):
         """Ejecuta la separación de datos con los valores introducidos.
         Ahora solo se solicita train_size; test_size se calcula como 1 - train_size."""
         try:
