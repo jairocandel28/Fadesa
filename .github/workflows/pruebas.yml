@@ -1,7 +1,5 @@
-name: Pruebas Automatizadas (CI)
+name: CI/CD Pruebas Robusto
 
-# Esto define cuándo se activa el robot:
-# Se activará cada vez que hagas un 'push' a la rama 'main' (o master)
 on:
   push:
     branches: [ "main", "master" ]
@@ -10,35 +8,31 @@ on:
 
 jobs:
   build-and-test:
-
-    # Computadora virtual
     runs-on: ubuntu-latest
 
     steps:
-
-    # La automatización descarga el código del repositorio
-    - name: Chequear código (Checkout)
+    - name: Checkout del código
       uses: actions/checkout@v4
 
-    # La automatización instala Python 3.12
     - name: Instalar Python 3.12
       uses: actions/setup-python@v5
       with:
         python-version: "3.12"
-
-    # 3. Se instalan las librerías del requirements.txt
-    - name: Instalar dependencias y Diagnóstico
-      run: |
-        echo "Archivos en el directorio de trabajo:"
-        ls -aR
         
-        /opt/hostedtoolcache/Python/3.12.12/x64/bin/python -m pip install --upgrade pip
-        /opt/hostedtoolcache/Python/3.12.12/x64/bin/python -m pip install -r requirements.txt
 
-    # 4. Se ejecutan las pruebas
-    # Nota: Agregamos una variable de entorno para Matplotlib por si acaso
-    - name: Ejecutar pruebas con Pytest
+    - name: Instalar dependencias del sistema
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential python3-tk
+
+    - name: Instalar dependencias Python (requirements.txt)
       env:
-        MPLBACKEND: Agg  # Esto evita errores de gráficos en servidores sin pantalla
+        MPLBACKEND: Agg
+      run: |
+        python -m pip install --upgrade pip
+        # Instalación forzada de todas tus librerías
+        python -m pip install -r requirements.txt
+
+    - name: Ejecutar pruebas con Pytest
       run: |
         python -m pytest
