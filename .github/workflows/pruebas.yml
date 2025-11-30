@@ -29,10 +29,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Ejecutar tests con pytest
+    - name: Ejecutar tests con pytest (forzado para doble carpeta)
       env:
-        PYTHONPATH: ./src   # <-- Clave: permite importar los módulos desde tests
+        PYTHONPATH: ./src:./Fadesa/src
       run: |
-        echo "Estructura detectada en GitHub:"
+        echo "Estructura real detectada en GitHub:"
         ls -R .
-        pytest -v --durations=5
+        pytest -v */tests tests
