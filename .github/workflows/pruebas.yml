@@ -1,4 +1,4 @@
-name: CI/CD Pruebas Robusto
+name: CI/CD Pruebas
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-
+    
     steps:
     - name: Checkout del código
       uses: actions/checkout@v4
@@ -18,31 +18,21 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.12"
-        
 
     - name: Instalar dependencias del sistema
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential python3-tk
+        sudo apt-get install -y python3-tk build-essential
 
-    - name: Instalar dependencias Python (requirements.txt)
-      env:
-        MPLBACKEND: Agg
+    - name: Instalar dependencias Python
       run: |
         python -m pip install --upgrade pip
-        # Instalación forzada de todas tus librerías
-        python -m pip install -r requirements.txt
+        pip install -r requirements.txt
 
-    - name: Ejecutar pruebas con Pytest
+    - name: Ejecutar tests con pytest
+      env:
+        PYTHONPATH: ./src   # <-- Clave: permite importar los módulos desde tests
       run: |
-        # 1. Diagnóstico: Listar la estructura para confirmar la carpeta 'tests'
-        echo "Contenido del directorio de trabajo (observar mayúsculas/minúsculas):"
-        ls -F
-        
-        # 2. Configuración de PATH para importar módulos de 'src/'
-        export PYTHONPATH=$PYTHONPATH:./src
-        
-        # 3. Ejecución FORZADA de Pytest, probando 'tests/' Y 'Tests/'
-        # Si la primera falla, prueba la segunda.
-        # Esto debería asegurar que encuentre la carpeta.
-        python -m pytest tests/ --durations=5 || python -m pytest Tests/ --durations=5
+        echo "Estructura detectada en GitHub:"
+        ls -R .
+        pytest -v --durations=5
