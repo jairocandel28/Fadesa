@@ -1,4 +1,4 @@
-from Prueba_Tkinter import *
+from interfaz_grafica import *
 
 
 
