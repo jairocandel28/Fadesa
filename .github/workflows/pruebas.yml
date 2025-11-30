@@ -35,4 +35,4 @@ jobs:
 
     - name: Ejecutar pruebas con Pytest
       run: |
-        python -m pytest
+        python -m pytest tests/
