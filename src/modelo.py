@@ -143,8 +143,7 @@ def guardar_modelo(modelo, columnas_entrada, columna_salida, metricas, descripci
             f"Ocurrió un problema al intentar guardar el modelo:\n{e}\n\n"
             "Por favor, verifica los permisos de escritura o el espacio en disco.")
 
-    # ---CREACIÓN Y GUARDADO DEL MODELO---
-
+# ---CREACIÓN Y GUARDADO DEL MODELO---
 
 def crear_modelo_lineal_gui(ventana, seleccion_entrada, seleccion_salida, datos, content_frame, frame_modelo):
     """Crea el modelo lineal con las entradas y la salida que el usuario ha seleccionado anteriormente.
@@ -228,7 +227,7 @@ def crear_modelo_lineal_gui(ventana, seleccion_entrada, seleccion_salida, datos,
         max_val = max(y_test_numpy.max(), resultados["y_test_pred"].max())
         line_coords = [min_val, max_val]
 
-        # Dibuja la línea y=x (ideal) en rojo punteado
+        # Dibuja la línea y=x (ideal) en rojo
         ax_pred.plot(line_coords, line_coords, 'r--', label="Predicción Ideal ($y=x$)", alpha=0.7)
 
         # Etiquetas y título
@@ -238,13 +237,11 @@ def crear_modelo_lineal_gui(ventana, seleccion_entrada, seleccion_salida, datos,
         ax_pred.legend()
         ax_pred.grid(True, linestyle='--', alpha=0.6)
 
-        # Integrar en Tkinter
         frame_grafico_pred = tk.LabelFrame(
             content_frame, 
             text="Gráfico de Predicción vs. Real (Test)", 
             padx=10, pady=10)
         
-        # Empaqueta el nuevo frame de gráfico en el content_frame
         frame_grafico_pred.pack(fill="both", expand=True, padx=10, pady=10)
 
         canvas_fig_pred = FigureCanvasTkAgg(fig_pred, frame_grafico_pred)
@@ -381,7 +378,7 @@ def configurar_panel_prediccion(frame_padre, modelo, columnas_entrada, columna_s
     boton_predecir = tk.Button(
         frame_prediccion,
         text="🚀 Calcular Predicción",
-        bg="#FFA07A",  # Salmón claro
+        bg="#FFA07A",
         font=("Arial", 10, "bold"),
         command=realizar_prediccion
     )

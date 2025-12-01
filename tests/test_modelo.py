@@ -86,7 +86,6 @@ def test_guardar_modelo(mock_filedialog, mock_msgbox, datos_test, tmp_path):
 def test_carga_y_prediccion(datos_test, tmp_path):
     """
     Verifica el ciclo completo: Entrenar -> Guardar -> Cargar -> Predecir.
-    
     """
     X_train, X_test, y_train, y_test = separacion_entrenamiento_test(
         datos_test, ['entrada1'], 'salida'
