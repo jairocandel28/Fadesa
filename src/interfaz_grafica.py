@@ -225,14 +225,14 @@ def pantalla_principal(ventana):
         """Muestra la tabla con los datos del dataframe que haya seleccionado
         el usuario."""
         try:
-            mensaje_bienvenida.destroy()
-        except:
-            pass
+            try:
+                mensaje_bienvenida.destroy()
+            except:
+                pass
 
-        for widget in frame_tabla.winfo_children():
-            widget.destroy()
+            for widget in frame_tabla.winfo_children():
+                widget.destroy()
 
-        try:
             nonlocal datos
             datos = leer_archivo(ruta)
 
@@ -397,20 +397,20 @@ def pantalla_principal(ventana):
         entry_seed.insert(0, "42")
         entry_seed.grid(row=1, column=1, padx=5, pady=5)
 
+
         boton_modelo = tk.Button(
             frame_modelo,
             text="📊 Crear modelo lineal",
             bg="#d0f0c0",
             command=lambda: ejecutar_separacion(
-                entry_train.get(), entry_seed.get(),
-                crear_modelo_lineal_gui(
-                ventana, seleccion_entrada, seleccion_salida, datos, content_frame, frame_modelo))
+                entry_train.get(), entry_seed.get(), crear_modelo_lineal_gui)
         )
         boton_modelo.grid(row=2, column=0, columnspan=2, pady=10)
 
-    def ejecutar_separacion(train_size, random_state, crear_modelo):
+    def ejecutar_separacion(train_size, random_state, crear_modelo_func):
         """Ejecuta la separación de datos con los valores introducidos.
-        Ahora solo se solicita train_size; test_size se calcula como 1 - train_size."""
+        Ahora solo se solicita train_size; test_size se calcula como 1 - train_size.
+        Solo si todo es válido, se llama a crear_modelo_func."""
         try:
             train_size = float(train_size)
             test_size = 1.0 - train_size
@@ -449,6 +449,10 @@ def pantalla_principal(ventana):
                 "División realizada",
                 f"Entrenamiento: {len(X_train)} filas\nPrueba: {len(X_test)} filas"
             )
+
+
+            crear_modelo_func(
+                ventana, seleccion_entrada, seleccion_salida, datos, content_frame, frame_modelo)
 
         except Exception as e:
             messagebox.showerror(
@@ -497,6 +501,7 @@ def pantalla_principal(ventana):
         frame_superior = tk.Frame(content_frame)
         frame_superior.pack(fill="x", pady=10, padx=10)
 
+        # Recargamos la variable por seguridad
         modelo_cargado = joblib.load(ruta)
 
         información = (
@@ -517,12 +522,10 @@ def pantalla_principal(ventana):
         label.pack(padx=10, pady=10)
 
         # --- INICIO DE INTEGRACIÓN: PREDICCIÓN ---
-        # Extraer los datos necesarios del diccionario cargado
         modelo_cargado_obj = modelo_cargado['modelo_objeto']
         cols_entrada_cargadas = modelo_cargado['columnas_entrada']
         col_salida_cargada = modelo_cargado['columna_salida']
 
-        # Crear un frame específico para la predicción dentro del frame_superior o crear uno nuevo abajo
         frame_pred_container = tk.Frame(content_frame)
         frame_pred_container.pack(fill="x", padx=10)
 
@@ -536,11 +539,7 @@ def pantalla_principal(ventana):
 
         boton_regresar = tk.Button(
             frame_superior, text="⬅️ VOLVER A LA PANTALLA DE INICIO", font=("Arial", 14))
-
-        boton_regresar = tk.Button(
-            frame_superior, text="⬅️ VOLVER A LA PANTALLA DE INICIO", font=("Arial", 14))
         boton_regresar.pack(side="bottom", padx=10)
-
         boton_regresar.config(command=lambda: pantalla_principal(ventana))
 
         messagebox.showinfo(
