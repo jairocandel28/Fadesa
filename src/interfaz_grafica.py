@@ -32,7 +32,6 @@ def pantalla_principal(ventana):
     main_frame = tk.Frame(ventana)
     main_frame.pack(fill="both", expand=True)
 
-    # Canvas que contendrá todo el contenido desplazable
     canvas = tk.Canvas(main_frame)
     canvas.pack(side="left", fill="both", expand=True)
 
@@ -41,14 +40,11 @@ def pantalla_principal(ventana):
         main_frame, orient="vertical", command=canvas.yview)
     scrollbar.pack(side="right", fill="y")
 
-    # Vincular la barra
     canvas.configure(yscrollcommand=scrollbar.set)
 
-    # Frame interno que contendrá todos los widgets
     content_frame = tk.Frame(canvas)
     content_frame.bind(
         "<Configure>",
-        # Actualiza el área desplazable
         lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
     )
     canvas.create_window((0, 0), window=content_frame, anchor="nw")
@@ -62,12 +58,10 @@ def pantalla_principal(ventana):
     )
     mensaje_bienvenida.pack(pady=20)
 
-    # PARA MIRAR QUE EL CONTENIDO SE AJUSTE AL ANCHO DE LA PANTALLA
     def resize_canvas(event):
         canvas.itemconfig("all", width=event.width)
     canvas.bind("<Configure>", resize_canvas)
 
-    # Permitir bajar con la rueda del ratón
     def _on_mousewheel(event):
         canvas.yview_scroll(int(-1*(event.delta / 120)), "units")
     canvas.bind_all("<MouseWheel>", _on_mousewheel)
@@ -101,7 +95,7 @@ def pantalla_principal(ventana):
     frame_tabla = tk.Frame(content_frame, bd=2, relief="groove", height=200)
     frame_tabla.pack(fill="both", expand=True, padx=10, pady=10)
 
-    # mostrar el marco incluso antes de cargar archivo
+    # mostrar el marco antes de cargar archivo
     placeholder = tk.Label(
         frame_tabla, text="📄 Carga un archivo para ver los datos", fg="gray")
     placeholder.pack(pady=20)
@@ -110,7 +104,6 @@ def pantalla_principal(ventana):
     frame_principal_inferior = tk.Frame(content_frame)
     frame_principal_inferior.pack(fill="x", padx=10, pady=10)
 
-    # Configuración del grid
     frame_principal_inferior.columnconfigure(0, weight=1)  # Selectores
     frame_principal_inferior.columnconfigure(1, weight=0)  # Espacio
     frame_principal_inferior.columnconfigure(2, weight=1)  # Preprocesado
@@ -119,7 +112,6 @@ def pantalla_principal(ventana):
     frame_selectores = tk.Frame(frame_principal_inferior)
     frame_selectores.grid(row=0, column=0, sticky="nsew", padx=(0, 20))
 
-    # Sub-frame para entradas y salidas dentro de frame_selectores
     frame_entrada_salida = tk.Frame(frame_selectores)
     frame_entrada_salida.pack(fill="x", pady=5)
 
@@ -266,7 +258,6 @@ def pantalla_principal(ventana):
             vsb.pack(side="right", fill="y")
             hsb.pack(side="bottom", fill="x")
 
-            # Actualizar desplegables
             listbox_entrada.delete(0, tk.END)
             for col in columnas:
                 listbox_entrada.insert(tk.END, col)
@@ -501,7 +492,6 @@ def pantalla_principal(ventana):
         frame_superior = tk.Frame(content_frame)
         frame_superior.pack(fill="x", pady=10, padx=10)
 
-        # Recargamos la variable por seguridad
         modelo_cargado = joblib.load(ruta)
 
         información = (
@@ -521,7 +511,6 @@ def pantalla_principal(ventana):
         label = tk.Label(frame_superior, text=información, font=("Arial", 14))
         label.pack(padx=10, pady=10)
 
-        # --- INICIO DE INTEGRACIÓN: PREDICCIÓN ---
         modelo_cargado_obj = modelo_cargado['modelo_objeto']
         cols_entrada_cargadas = modelo_cargado['columnas_entrada']
         col_salida_cargada = modelo_cargado['columna_salida']
@@ -535,7 +524,6 @@ def pantalla_principal(ventana):
             cols_entrada_cargadas,
             col_salida_cargada
         )
-        # --- FIN DE INTEGRACIÓN ---
 
         boton_regresar = tk.Button(
             frame_superior, text="⬅️ VOLVER A LA PANTALLA DE INICIO", font=("Arial", 14))

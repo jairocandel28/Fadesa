@@ -211,26 +211,21 @@ def crear_modelo_lineal_gui(ventana, seleccion_entrada, seleccion_salida, datos,
             canvas_fig.draw()
             canvas_fig.get_tk_widget().pack(fill="both", expand=True)
 
-        # --- Gráfico de dispersión Predicción vs. Real (para el conjunto de test) ---
+        # --- Gráfico de dispersión Predicción vs. Real ---
         
-        # Crear la figura
         fig_pred = Figure(figsize=(6, 4))
         ax_pred = fig_pred.add_subplot(111)
 
-        # Scatter plot de valores reales vs. valores predichos
         ax_pred.scatter(y_test, resultados["y_test_pred"], label="Predicciones Test")
         
-        # Línea ideal (y=x): Determina el rango de valores para la línea
         y_test_numpy = y_test.values if isinstance(y_test, pd.Series) else y_test
         
         min_val = min(y_test_numpy.min(), resultados["y_test_pred"].min())
         max_val = max(y_test_numpy.max(), resultados["y_test_pred"].max())
         line_coords = [min_val, max_val]
 
-        # Dibuja la línea y=x (ideal) en rojo
         ax_pred.plot(line_coords, line_coords, 'r--', label="Predicción Ideal ($y=x$)", alpha=0.7)
 
-        # Etiquetas y título
         ax_pred.set_xlabel(f"Valores Reales de {columna_salida}")
         ax_pred.set_ylabel(f"Predicciones de {columna_salida}")
         ax_pred.set_title("Predicción vs. Valores Reales (Conjunto de Test)")
